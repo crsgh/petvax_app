@@ -109,6 +109,20 @@ class ServicesController extends GetxController with SnackBarMixin {
       barrierDismissible: false,
     );
 
+    var minutes = int.parse(selectedTime.value.split(":")[1]);
+    var hour =
+    selectedAmPm.value == "PM"
+        ? int.parse(selectedTime.value.split(":")[0]) + 12
+        : int.parse(selectedTime.value.split(":")[0]);
+    var dateTime =
+    DateTime(
+      selectedDate.value.year,
+      selectedDate.value.month,
+      selectedDate.value.day,
+      hour,
+      minutes,
+    ).toIso8601String();
+
     var body = {
       "clinic_id": clinic!.id,
       "service_id": id,
@@ -121,14 +135,7 @@ class ServicesController extends GetxController with SnackBarMixin {
       "client_id": settings.user!.id,
       "staff_id": null,
       "appointment_datetime":
-          DateTime(
-            selectedDate.value.year,
-            selectedDate.value.month,
-            selectedDate.value.day,
-            selectedAmPm.value == "PM"
-                ? selectedHour.value + 12
-                : selectedHour.value,
-          ).toIso8601String(),
+      dateTime,
       "notes": "any",
       "total_amount": amount,
       "status": "pending",
@@ -139,13 +146,13 @@ class ServicesController extends GetxController with SnackBarMixin {
     // Add payment proof file if exists
     if (imagePath.value != null) {
       final file = File(imagePath.value!);
-      body['payment_proof'] = MultipartFile(
+      body['proof'] = MultipartFile(
         file,
         filename: 'payment_proof.jpg',
       );
     }
 
-    var res = await connect.post('booking/add', FormData(body));
+    var res = await connect.post('booking/add', FormData(body),);
     Get.back();
 
     if (res.body['status'] == 'success') {
@@ -173,6 +180,7 @@ class ServicesController extends GetxController with SnackBarMixin {
   }
 
   book(id, price, hs) async {
+
     Get.dialog(
       const Center(child: CircularProgressIndicator()),
       barrierDismissible: false,
@@ -186,6 +194,7 @@ class ServicesController extends GetxController with SnackBarMixin {
     selectedPaymentMethod.value = "gcash";
     imagePath.value = null;
     referenceNumber.value = '';
+    isHomeService.value = false;
 
     await loadServicesTime(id);
     Get.back();
@@ -309,7 +318,7 @@ class ServicesController extends GetxController with SnackBarMixin {
                           onChanged: (value) async {
                             if (value != null) {
                               selectedTime.value = value;
-                              await checkSlots();
+                              await checkSlots(id);
                             }
                           },
                         ),
@@ -366,7 +375,7 @@ class ServicesController extends GetxController with SnackBarMixin {
                             showTime(isAm: value == "AM");
                             selectedTime.value = '';
                             selectedAmPm.value = value!;
-                            await checkSlots();
+                            await checkSlots(id);
                           },
                         ),
                       ),
@@ -418,7 +427,7 @@ class ServicesController extends GetxController with SnackBarMixin {
                   onDaySelected: (selectedDay, focusedDay) async {
                     selectedDate.value = selectedDay;
                     await loadServicesTime(id);
-                    await checkSlots();
+                    await checkSlots(id);
                   },
                   calendarFormat: CalendarFormat.twoWeeks,
                   calendarStyle: CalendarStyle(
@@ -487,10 +496,11 @@ class ServicesController extends GetxController with SnackBarMixin {
                 ),
               ),
             ),
-            SizedBox(height: 15.h),
+            SizedBox(height: 10.h),
             GradientButton(
               text: "Confirm Booking",
               onPressed: () {
+                Get.back();
                 if (isDateAvailable.value) {
                   Get.bottomSheet(
                     Wrap(
@@ -715,6 +725,7 @@ class ServicesController extends GetxController with SnackBarMixin {
                                 text: "Proceed with Booking",
                                 onPressed: () {
                                   if (isHomeService.value) {
+                                    Get.back();
                                     Get.bottomSheet(
                                       Container(
                                         height: Get.height * 0.8,
@@ -807,6 +818,7 @@ class ServicesController extends GetxController with SnackBarMixin {
                                                       "gcash") {
                                                     gcashPopUp(id, price);
                                                   } else {
+                                                    Get.back();
                                                     bookNow(id, price);
                                                   }
                                                 },
@@ -824,10 +836,9 @@ class ServicesController extends GetxController with SnackBarMixin {
                                       "gcash") {
                                     gcashPopUp(id, price);
                                   } else {
+                                    Get.back();
                                     bookNow(id, price);
 
-                                    Get.back();
-                                    Get.back();
                                   }
                                 },
                                 gradientColors: AppColors.primaryGradient,
@@ -856,6 +867,7 @@ class ServicesController extends GetxController with SnackBarMixin {
   }
 
   gcashPopUp(id, price) async {
+    Get.back();
     Get.bottomSheet(
       Wrap(
         children: [
@@ -1010,15 +1022,14 @@ class ServicesController extends GetxController with SnackBarMixin {
     );
   }
 
-  checkSlots() async {
+  checkSlots(id) async {
     Get.dialog(
       const Center(child: CircularProgressIndicator()),
       barrierDismissible: false,
     );
-
     var res = await connect.post('check-slot', {
       "clinic_id": clinic!.id,
-      "service_id": services[activeIndex.value].id,
+      "service_id": id,
       "time": "${selectedTime.value} $selectedAmPm",
       "date": DateFormat('yyyy-MM-dd').format(selectedDate.value),
     });

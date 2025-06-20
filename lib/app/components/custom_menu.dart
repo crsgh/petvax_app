@@ -9,9 +9,11 @@ class CustomMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CircularMenu(
-      radius: 90,
-      toggleButtonSize: 30,
 
+      radius: 90,
+      toggleButtonSize: 20,
+      toggleButtonColor: AppColors.primary,
+      animationDuration: Duration(milliseconds: 500),
       items: [
         CircularMenuItem(
           color: AppColors.primary,

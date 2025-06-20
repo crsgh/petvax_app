@@ -478,6 +478,7 @@ class Services extends GetView<ServicesController> {
                                         );
                                         return;
                                       }
+
                                       controller.book(
                                         service.id,
                                         service.price,

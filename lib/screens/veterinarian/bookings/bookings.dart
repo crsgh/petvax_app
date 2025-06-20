@@ -450,12 +450,16 @@ class AppointmentCard extends StatelessWidget {
                     ),
                   ),
                   SizedBox(width: 8.w),
-                  Text(
-                    appointment.clinicName,
-                    style: GoogleFonts.poppins(
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w500,
-                      color: const Color(0xFF111827),
+                  SizedBox(
+                    width: Get.width -110.w,
+                    child: Text(
+                      appointment.clinicName,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFF111827),
+                      ),
                     ),
                   ),
                 ],

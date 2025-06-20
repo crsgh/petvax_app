@@ -1,4 +1,4 @@
 class AppStrings {
-  static String baseUrl = "https://ds.capiroso.site/api/";
-  static String imageUrl = "https://ds.capiroso.site/storage/";
+  static String baseUrl = "https://petvax.shop/api/";
+  static String imageUrl = "https://petvax.shop/storage/";
 }
