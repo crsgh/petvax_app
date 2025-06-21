@@ -62,7 +62,7 @@ class Settings extends GetxController with SnackBarMixin {
   }
 
   fetchClinics() async {
-    var res = await connect.get('clinic/all');
+    var res = await connect.get('clinic/all?latitude=${position!.latitude.toString()}&longitude=${position!.longitude.toString()}');
     if (res.status.hasError) {
       showErrorSnackbar("Failed to fetch clinics: ${res.statusText}");
     } else {

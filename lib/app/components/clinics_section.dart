@@ -83,6 +83,7 @@ class ClinicsSection extends StatelessWidget {
             height: height ?? 235.h,
             child: ListView.builder(
               scrollDirection: axis ?? Axis.horizontal,
+              reverse: false,
               itemCount:
                   limit != null
                       ? (limit! > clinics.length ? clinics.length : limit!)

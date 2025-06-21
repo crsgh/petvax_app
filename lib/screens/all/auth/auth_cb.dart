@@ -4,6 +4,7 @@ import 'package:petvax/app/constants/strings.dart';
 import 'package:petvax/app/models/user_model.dart';
 import 'package:petvax/app/services/storage_service.dart';
 import 'package:petvax/app/widgets/custom_text.dart';
+import 'package:petvax/screens/all/utility/settings_controller.dart';
 
 import '../../../app/components/pretty_alerts.dart';
 
@@ -91,8 +92,9 @@ class AuthController extends GetxController {
               onPrimary: () async {
                 UserModel user = UserModel.fromJson(res.body['user']);
                 await Storage.saveUser(user: user);
-
-                Get.offAndToNamed('/splash');
+                Get.deleteAll(force:true) ;
+                Get.put(Settings);
+                Get.offAllNamed('/splash');
               },
               onClose: () {
                 Get.back();

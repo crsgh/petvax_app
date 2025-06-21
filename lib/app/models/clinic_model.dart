@@ -37,7 +37,7 @@ class Clinic {
       location: json['address'],
       openingTime: json['opening_time'],
       closingTime: json['closing_time'],
-      distance: json['distance'] ?? "0",
+      distance: (json['distance'].toString() ?? "0"),
       operationDays: jsonDecode(json['operation_days'] ?? '[]'),
       image:
           json['image'] ??

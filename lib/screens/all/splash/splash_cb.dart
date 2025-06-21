@@ -50,7 +50,7 @@ class SplashController extends GetxController {
       _timer?.cancel();
       if (user.roleID == 4) {
         Get.offAndToNamed('/vet-home');
-      } else {
+      } else if(user.roleID==5){
         Get.offAndToNamed('/home');
       }
     } else {

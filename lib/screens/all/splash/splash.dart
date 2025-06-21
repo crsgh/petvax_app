@@ -50,7 +50,7 @@ class Splash extends GetView<SplashController> {
   }
 
   _loaded() {
-    return CustomText(text: "App Loaded");
+    return CustomText(text: "User role not allowed.");
   }
 
   _error() {
