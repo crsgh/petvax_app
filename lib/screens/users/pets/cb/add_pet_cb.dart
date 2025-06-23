@@ -222,8 +222,8 @@ class AddPetController extends GetxController with SnackBarMixin {
     try {
       final formData = {
         'name': name.value,
-        'species': specie.value,
-        'breed': breed.value.isEmpty ? null : breed.value,
+        'species': specie.value.toString(),
+        'breed': breed.value.toString(),
         'birth_date': birthDate.value?.toIso8601String().split('T')[0],
         'clinic_id': 7,
         'owner_id': settings.user!.id,
@@ -231,8 +231,8 @@ class AddPetController extends GetxController with SnackBarMixin {
         'gender': selectedGender.value.isEmpty ? null : selectedGender.value,
       };
       var endPoint = pet != null ? 'pet/edit/${pet!.id}' : 'pet/add';
-      var res = await connect.post(AppStrings.baseUrl + endPoint, formData);
-
+      var res = await connect.post(endPoint, formData);
+      print(res.body);
       if (res.body['status'] != 'success') {
         throw Exception('Failed to add pet: ${res.body['message']}');
       } else {
@@ -246,7 +246,8 @@ class AddPetController extends GetxController with SnackBarMixin {
       // Reset form
 
       //Get.back();
-    } catch (e) {
+    } catch (e, ex) {
+      print(ex);
       showErrorSnackbar(e.toString());
     } finally {
       isLoading.value = false;
@@ -255,8 +256,6 @@ class AddPetController extends GetxController with SnackBarMixin {
 
   void resetForm() {
     name('');
-    specie('');
-    breed('');
     weight('');
     selectedImage.value = null;
     birthDate.value = null;

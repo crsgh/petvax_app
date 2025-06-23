@@ -232,6 +232,10 @@ class AddPetScreen extends StatelessWidget {
   }
 
   Widget _buildFormFields(AddPetController controller, BuildContext context) {
+    print(controller.settings.breeds.length);
+    print(controller.settings.species.length);
+    controller.breed.value = controller.settings.breeds.first.id.toString();
+    controller.specie.value = controller.settings.species.first.name;
     return Column(
       children: [
         // Name and Species Row
@@ -270,19 +274,35 @@ class AddPetScreen extends StatelessWidget {
             ),
             SizedBox(height: 8.h),
             Obx(
-              () => CustomInputField(
-                placeholder: 'e.g Canine, Feline',
+              () => DropdownButtonFormField<String>(
                 value: controller.specie.value,
+                decoration: InputDecoration(
+                  hintText: 'e.g Canine, Feline',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.r),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 16.w,
+                    vertical: 12.h,
+                  ),
+                ),
+                items:
+                    controller.settings.species.map((item) {
+                      return DropdownMenuItem<String>(
+                        value: item.name,
+                        child: CustomText(text: item.name, fontSize: 14),
+                      );
+                    }).toList(),
                 onChanged: (val) {
-                  controller.specie.value = val;
+                  if (val != null) controller.specie.value = val;
                 },
-                marginBottom: 10.h,
               ),
             ),
           ],
         ),
 
-        // Breed and Gender Row
+        // Breed Dropdown - FIXED
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -294,17 +314,38 @@ class AddPetScreen extends StatelessWidget {
             ),
             SizedBox(height: 8.h),
             Obx(
-              () => CustomInputField(
-                placeholder: 'Enter breed (optional)',
+              () => DropdownButtonFormField<String>(
+                // FIXED: Use breed value instead of specie value
                 value: controller.breed.value,
+                decoration: InputDecoration(
+                  hintText: 'e.g Golden Retriever, Persian',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.r),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 16.w,
+                    vertical: 12.h,
+                  ),
+                ),
+                // FIXED: Use breeds data instead of species data
+                items:
+                    controller.settings.breeds.map((item) {
+                      return DropdownMenuItem<String>(
+                        value: item.id.toString(),
+                        child: CustomText(text: item.name, fontSize: 14),
+                      );
+                    }).toList(),
                 onChanged: (val) {
-                  controller.breed.value = val;
+                  // FIXED: Update breed value instead of specie value
+                  if (val != null) controller.breed.value = val;
                 },
-                marginBottom: 10.h,
               ),
             ),
           ],
         ),
+
+        // Gender Dropdown - This one is working correctly
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

@@ -37,6 +37,9 @@ class SplashController extends GetxController {
       await settings.fetchClinics();
       dots.value = "";
       loadingText("Loading appointments data");
+      await settings.fetchPetDetails();
+      dots.value = "";
+      loadingText("Loading appointments breeds and species data");
       settings.appointments(
         (await GetConnect().get(
           '${AppStrings.baseUrl}booking/${user.roleID == 4 ? "veterinarian" : "user"}/${user.id}',
@@ -50,7 +53,7 @@ class SplashController extends GetxController {
       _timer?.cancel();
       if (user.roleID == 4) {
         Get.offAndToNamed('/vet-home');
-      } else if(user.roleID==5){
+      } else if (user.roleID != 4) {
         Get.offAndToNamed('/home');
       }
     } else {

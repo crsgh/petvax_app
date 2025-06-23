@@ -10,6 +10,9 @@ import 'package:petvax/app/models/notification_model.dart';
 import 'package:petvax/app/models/pet_model.dart';
 import 'package:petvax/app/models/user_model.dart';
 
+import '../../../app/models/breed.dart';
+import '../../../app/models/specie.dart';
+
 class Settings extends GetxController with SnackBarMixin {
   GetConnect connect = GetConnect();
   UserModel? user;
@@ -17,6 +20,8 @@ class Settings extends GetxController with SnackBarMixin {
   RxList<Clinic> clinics = <Clinic>[].obs;
   RxList<Appointment> appointments = <Appointment>[].obs;
   RxList<NotificationItem> notifications = <NotificationItem>[].obs;
+  RxList<Specie> species = <Specie>[].obs;
+  RxList<Breed> breeds = <Breed>[].obs;
   Position? position;
   Timer? _timer;
 
@@ -62,13 +67,27 @@ class Settings extends GetxController with SnackBarMixin {
   }
 
   fetchClinics() async {
-    var res = await connect.get('clinic/all?latitude=${position!.latitude.toString()}&longitude=${position!.longitude.toString()}');
+    var res = await connect.get(
+      'clinic/all?latitude=${position?.latitude}&longitude=${position?.longitude}',
+    );
     if (res.status.hasError) {
       showErrorSnackbar("Failed to fetch clinics: ${res.statusText}");
     } else {
       var data = res.body['data'] as List;
       clinics.value = data.map((e) => Clinic.fromJson(e)).toList();
     }
+  }
+
+  fetchPetDetails() async {
+    var res = await connect.get('pet/details');
+    breeds.value =
+        (res.body['data']['breeds'])
+            .map<Breed>((e) => Breed.fromJson(e))
+            .toList();
+    species.value =
+        (res.body['data']['species'])
+            .map<Specie>((e) => Specie.fromJson(e))
+            .toList();
   }
 
   fetchNotifications({id}) async {
