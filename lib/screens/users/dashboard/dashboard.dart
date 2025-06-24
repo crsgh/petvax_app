@@ -153,8 +153,8 @@ class DashboardScreen extends GetView<DashboardController> {
                           controller.settings.appointments
                               .where(
                                 (e) =>
-                                    e.status != "confirmed" ||
-                                    e.status != "completed",
+                                    e.status.toLowerCase() != "completed" && e.status.toLowerCase() != "confirmed"
+
                               )
                               .toList(),
                       limit: 3,
