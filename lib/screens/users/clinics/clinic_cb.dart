@@ -20,8 +20,8 @@ class ClinicsController extends GetxController with SnackBarMixin {
   @override
   void onInit() async {
     if (Get.arguments != null) {
-      searchQuery.text = Get.arguments['search_param'].text;
-      searchClinics(Get.arguments['search_param'].text);
+      searchQuery.text =Get.arguments['search_param'].runtimeType == String?Get.arguments['search_param']: Get.arguments['search_param'].text;
+      searchClinics(Get.arguments['search_param'].runtimeType == String?Get.arguments['search_param']: Get.arguments['search_param'].text);
     } else {
       shownClinics(settings.clinics);
     }
@@ -99,7 +99,7 @@ class ClinicsController extends GetxController with SnackBarMixin {
       'sunday',
     ];
     final currentDay =
-        weekDays[now.weekday - 1]; // Get current day abbreviation
+    weekDays[now.weekday - 1]; // Get current day abbreviation
     final currentTime = now.hour * 60 + now.minute; // Convert to minutes
     print(shownClinics.first.operationDays);
     shownClinics.value =
@@ -126,7 +126,7 @@ class ClinicsController extends GetxController with SnackBarMixin {
 class ClinicsBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut(() => Settings());
+//    Get.lazyPut(() => Settings());
     Get.lazyPut<ClinicsController>(() => ClinicsController());
   }
 }

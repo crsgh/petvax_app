@@ -28,8 +28,10 @@ class AddPetController extends GetxController with SnackBarMixin {
     super.onInit();
     pet = Get.arguments;
     if (pet != null) {
+      print(pet!.toJson());
       name.value = pet!.name;
-      specie = pet!.species.obs;
+
+      specie = settings.species.firstWhere((e)=> e.name.toLowerCase().toString() == pet!.species.toString()).name.toString().obs;
       breed = pet!.breed?.obs;
       birthDate.value = pet!.birthDate;
       weight.value = pet!.weight.toString();
@@ -42,7 +44,7 @@ class AddPetController extends GetxController with SnackBarMixin {
     connect.baseUrl = AppStrings.baseUrl;
     // Add listeners for real-time validation
     name.listen((value) => validateName());
-    specie?.listen((value) => validateSpecies());
+    specie.listen((value) => validateSpecies());
     breed?.listen((value) => validateBreed());
     weight.listen((value) => validateWeight());
     view(AddPetView.loaded);
@@ -223,7 +225,7 @@ class AddPetController extends GetxController with SnackBarMixin {
     isLoading.value = true;
 
     try {
-      final formData = {
+      final formData = FormData({
         'name': name.value,
         'species': specie.value.toString(),
         'breed': breed!.value.toString(),
@@ -232,10 +234,15 @@ class AddPetController extends GetxController with SnackBarMixin {
         'owner_id': settings.user!.id,
         'weight': weight.value.isEmpty ? null : double.tryParse(weight.value),
         'gender': selectedGender.value.isEmpty ? null : selectedGender.value,
-      };
+        'image': MultipartFile(selectedImage.value?.path, filename: "carlos_${DateTime.now().microsecondsSinceEpoch}"),
+      });
+
+
       var endPoint = pet != null ? 'pet/edit/${pet!.id}' : 'pet/add';
+
       var res = await connect.post(endPoint, formData);
-      print(res.body);
+
+
       if (res.body['status'] != 'success') {
         throw Exception('Failed to add pet: ${res.body['message']}');
       } else {

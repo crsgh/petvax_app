@@ -40,7 +40,7 @@ class NotificationItem {
               ? Colors.green
               : Colors.blue,
       //priority: json['priority'] as String,
-      petInfo: json['pet']['name'] as String?,
+      petInfo: json['pet']?['name'] ?? "Carlos" ,
       isRead: json['is_read'] == 0 ? false : true,
     );
   }
