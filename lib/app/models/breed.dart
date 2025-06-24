@@ -7,7 +7,7 @@ class Breed {
     return Breed(
       id: json['id'] as int,
       name: json['name'] as String,
-      specieId: json['species_id'] as int,
+      specieId: json['species_id'] ?? 1,
     );
   }
 }
