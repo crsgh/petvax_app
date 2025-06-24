@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:petvax/app/constants/strings.dart';
 import 'package:petvax/app/mixins/snackbar.dart';
 import 'package:petvax/app/models/pet_model.dart';
@@ -36,10 +37,10 @@ class AddPetController extends GetxController with SnackBarMixin {
       birthDate.value = pet!.birthDate;
       weight.value = pet!.weight.toString();
       selectedGender.value = pet!.gender ?? "Male";
-      selectedImage.value =
-          pet!.image != null
-              ? await _downloadAndSaveImage(AppStrings.imageUrl + pet!.image!)
-              : null;
+      // selectedImage( pet!.image != null
+      //     ? await _downloadAndSaveImage(AppStrings.imageUrl + pet!.image!)
+      //     : null);
+      // print(pet!.image ?? "Pashnea" );
     }
     connect.baseUrl = AppStrings.baseUrl;
     // Add listeners for real-time validation
@@ -98,12 +99,11 @@ class AddPetController extends GetxController with SnackBarMixin {
 
   Future<File?> _downloadAndSaveImage(String imageUrl) async {
     try {
-      final response = await connect.get(imageUrl);
+      final response = await GetConnect().get(AppStrings.imageUrl + imageUrl);
+      var dir = await getTemporaryDirectory();
       if (response.status.isOk) {
-        // Create a temporary file
-        final tempDir = Directory.systemTemp;
         final tempFile = File(
-          '${tempDir.path}/temp_image_${DateTime.now().millisecondsSinceEpoch}.jpg',
+          '${dir.path}/${DateTime.now().millisecondsSinceEpoch}.png',
         );
 
         // Write image data to file
@@ -227,21 +227,35 @@ class AddPetController extends GetxController with SnackBarMixin {
     try {
       final formData = FormData({
         'name': name.value,
-        'species': specie.value.toString(),
+        'species': specie.value.toString().toLowerCase(),
         'breed': breed!.value.toString(),
         'birth_date': birthDate.value?.toIso8601String().split('T')[0],
         'clinic_id': 7,
         'owner_id': settings.user!.id,
         'weight': weight.value.isEmpty ? null : double.tryParse(weight.value),
         'gender': selectedGender.value.isEmpty ? null : selectedGender.value,
-        'image': MultipartFile(selectedImage.value?.path, filename: "carlos_${DateTime.now().microsecondsSinceEpoch}"),
       });
 
+      if (selectedImage.value != null) {
+        formData.files.add(
+          MapEntry(
+            'image',
+            MultipartFile(
+              selectedImage.value!.path,
+              filename: 'pet_${DateTime.now().millisecondsSinceEpoch}.jpg',
+            ),
+          ),
+        );
+      }
 
       var endPoint = pet != null ? 'pet/edit/${pet!.id}' : 'pet/add';
 
-      var res = await connect.post(endPoint, formData);
-
+      var res = await GetConnect().post(
+        "${AppStrings.baseUrl}$endPoint",
+        formData,
+        contentType: "multipart/form-data",
+      );
+      print(res.body);
 
       if (res.body['status'] != 'success') {
         throw Exception('Failed to add pet: ${res.body['message']}');
@@ -252,7 +266,6 @@ class AddPetController extends GetxController with SnackBarMixin {
           pet != null ? "Pet updated successfully!" : "Pet added successfully!",
         );
       }
-
       // Reset form
 
       //Get.back();

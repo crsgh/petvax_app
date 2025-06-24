@@ -1,6 +1,8 @@
 // Controller
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:petvax/app/models/pet_model.dart';
 import 'package:petvax/app/models/user_model.dart';
 import 'package:petvax/app/services/storage_service.dart';
@@ -20,12 +22,111 @@ class PetOwnerController extends GetxController {
   }
 
   void editProfile() {
-    Get.snackbar(
-      'Edit Profile',
-      'Profile editing functionality',
-      backgroundColor: Colors.blue.shade50,
-      colorText: Colors.blue.shade700,
-      snackPosition: SnackPosition.TOP,
+    final nameController = TextEditingController(text: user!.name);
+    final phoneController = TextEditingController(text: user!.phone);
+    final addressController = TextEditingController(text: user!.address);
+
+    Get.bottomSheet(
+      Container(
+        padding: EdgeInsets.all(24.w),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Edit Profile',
+                    style: GoogleFonts.poppins(
+                      fontSize: 20.sp,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Get.back(),
+                    icon: Icon(Icons.close),
+                  ),
+                ],
+              ),
+              SizedBox(height: 24.h),
+              TextField(
+                controller: nameController,
+                decoration: InputDecoration(
+                  labelText: 'Name',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              SizedBox(height: 16.h),
+              TextField(
+                controller: phoneController,
+                decoration: InputDecoration(
+                  labelText: 'Phone',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.phone,
+              ),
+              SizedBox(height: 16.h),
+              TextField(
+                controller: addressController,
+                decoration: InputDecoration(
+                  labelText: 'Address',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 2,
+              ),
+              SizedBox(height: 24.h),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    // Update user data
+                    user!.name = nameController.text;
+                    user!.phone = phoneController.text;
+                    user!.address = addressController.text;
+                    
+                    // Save to storage
+                    Storage.saveUser(user: user!);
+                    
+                    // Update UI
+                    update();
+                    
+                    Get.back();
+                    Get.snackbar(
+                      'Success',
+                      'Profile updated successfully',
+                      backgroundColor: Colors.green.shade50,
+                      colorText: Colors.green.shade700,
+                      snackPosition: SnackPosition.TOP,
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    padding: EdgeInsets.symmetric(vertical: 16.h),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                  ),
+                  child: Text(
+                    'Save Changes',
+                    style: GoogleFonts.poppins(
+                      color: Colors.white,
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      isScrollControlled: true,
     );
   }
 

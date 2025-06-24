@@ -16,125 +16,132 @@ class AddPetScreen extends StatelessWidget {
     final controller = Get.put(AddPetController());
 
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFFEBF4FF), Color(0xFFE0E7FF)],
+      body: switch(controller.view.value){
+        AddPetView.loaded => Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFFEBF4FF), Color(0xFFE0E7FF)],
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.all(16.w),
-            child: Column(
-              children: [
-                // Header Card
-                Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: AppColors.primaryGradient,
+          child: SafeArea(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.all(16.w),
+              child: Column(
+                children: [
+                  // Header Card
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: AppColors.primaryGradient,
+                      ),
+                      borderRadius: BorderRadius.circular(16.r),
                     ),
-                    borderRadius: BorderRadius.circular(16.r),
-                  ),
-                  padding: EdgeInsets.symmetric(
-                    vertical: 16.h,
-                    horizontal: 16.w,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              GestureDetector(
-                                onTap: () {
-                                  Get.back();
-                                },
-                                child: Icon(
-                                  Icons.arrow_back_ios_new,
-                                  color: Colors.white,
-                                  size: 25.sp,
-                                ),
-                              ),
-                              SizedBox(width: 16.w),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  CustomText(
-                                    text: 'Add New Pet',
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
+                    padding: EdgeInsets.symmetric(
+                      vertical: 16.h,
+                      horizontal: 16.w,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    Get.back();
+                                  },
+                                  child: Icon(
+                                    Icons.arrow_back_ios_new,
                                     color: Colors.white,
+                                    size: 25.sp,
                                   ),
-                                  SizedBox(height: 4.h),
-                                  CustomText(
-                                    text: 'Fill in the details.',
-                                    fontSize: 13,
-                                    color: Colors.blue.shade100,
-                                  ),
-                                ],
+                                ),
+                                SizedBox(width: 16.w),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    CustomText(
+                                      text: controller.pet == null ? 'Add New Pet' : "Edit Pet Details",
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                    SizedBox(height: 4.h),
+                                    CustomText(
+                                      text: 'Fill in the details.',
+                                      fontSize: 13,
+                                      color: Colors.blue.shade100,
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            Container(
+                              padding: EdgeInsets.all(12.w),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(12.r),
                               ),
-                            ],
-                          ),
-                          Container(
-                            padding: EdgeInsets.all(12.w),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(12.r),
+                              child: Icon(
+                                Icons.pets_rounded,
+                                color: Colors.white,
+                                size: 24,
+                              ),
                             ),
-                            child: Icon(
-                              Icons.pets_rounded,
-                              color: Colors.white,
-                              size: 24,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
 
-                SizedBox(height: 24.h),
+                  SizedBox(height: 24.h),
 
-                // Main Form Card
-                Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16.r),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 20,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
+                  // Main Form Card
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16.r),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 20,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    padding: EdgeInsets.all(24.w),
+                    child: Column(
+                      children: [
+                        // Image Upload Section
+                        _buildImageUploadSection(controller),
+
+                        SizedBox(height: 32.h),
+
+                        // Form Fields
+                        _buildFormFields(controller, context),
+
+                        // Submit Button
+                        _buildSubmitButton(controller),
+                      ],
+                    ),
                   ),
-                  padding: EdgeInsets.all(24.w),
-                  child: Column(
-                    children: [
-                      // Image Upload Section
-                      _buildImageUploadSection(controller),
-
-                      SizedBox(height: 32.h),
-
-                      // Form Fields
-                      _buildFormFields(controller, context),
-
-                      // Submit Button
-                      _buildSubmitButton(controller),
-                    ],
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
-      ),
+
+
+        AddPetView.loading => Center(child: CircularProgressIndicator()),
+        // TODO: Handle this case.
+        AddPetView.error => throw UnimplementedError(),
+      },
     );
   }
 

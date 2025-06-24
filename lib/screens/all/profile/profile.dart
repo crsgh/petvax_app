@@ -91,6 +91,22 @@ class PetOwnerProfileScreen extends GetView<PetOwnerController> {
                       ),
                       SizedBox(width: 5.w),
                       GestureDetector(
+                        onTap: controller.editProfile,
+                        child: Container(
+                          padding: EdgeInsets.all(8.w),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                          child: Icon(
+                            Icons.edit_rounded,
+                            color: Colors.white,
+                            size: 20.w,
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 5.w),
+                      GestureDetector(
                         onTap: () async {
                           (await SharedPreferences.getInstance()).clear();
                           Get.offAndToNamed('/auth');
