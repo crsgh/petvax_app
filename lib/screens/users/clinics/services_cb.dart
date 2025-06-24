@@ -13,6 +13,7 @@ import 'package:petvax/app/constants/colors.dart';
 import 'package:petvax/app/constants/strings.dart';
 import 'package:petvax/app/mixins/snackbar.dart';
 import 'package:petvax/app/models/clinic_model.dart';
+import 'package:petvax/app/widgets/custom_text.dart';
 import 'package:petvax/app/widgets/gradient_button.dart';
 import 'package:petvax/screens/all/utility/settings_controller.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -111,17 +112,17 @@ class ServicesController extends GetxController with SnackBarMixin {
 
     var minutes = int.parse(selectedTime.value.split(":")[1]);
     var hour =
-    selectedAmPm.value == "PM"
-        ? int.parse(selectedTime.value.split(":")[0]) + 12
-        : int.parse(selectedTime.value.split(":")[0]);
+        selectedAmPm.value == "PM"
+            ? int.parse(selectedTime.value.split(":")[0]) + 12
+            : int.parse(selectedTime.value.split(":")[0]);
     var dateTime =
-    DateTime(
-      selectedDate.value.year,
-      selectedDate.value.month,
-      selectedDate.value.day,
-      hour,
-      minutes,
-    ).toIso8601String();
+        DateTime(
+          selectedDate.value.year,
+          selectedDate.value.month,
+          selectedDate.value.day,
+          hour,
+          minutes,
+        ).toIso8601String();
 
     var body = {
       "clinic_id": clinic!.id,
@@ -134,8 +135,7 @@ class ServicesController extends GetxController with SnackBarMixin {
               .id,
       "client_id": settings.user!.id,
       "staff_id": null,
-      "appointment_datetime":
-      dateTime,
+      "appointment_datetime": dateTime,
       "notes": "any",
       "total_amount": amount,
       "status": "pending",
@@ -146,13 +146,10 @@ class ServicesController extends GetxController with SnackBarMixin {
     // Add payment proof file if exists
     if (imagePath.value != null) {
       final file = File(imagePath.value!);
-      body['proof'] = MultipartFile(
-        file,
-        filename: 'payment_proof.jpg',
-      );
+      body['proof'] = MultipartFile(file, filename: 'payment_proof.jpg');
     }
 
-    var res = await connect.post('booking/add', FormData(body),);
+    var res = await connect.post('booking/add', FormData(body));
     Get.back();
 
     if (res.body['status'] == 'success') {
@@ -180,7 +177,6 @@ class ServicesController extends GetxController with SnackBarMixin {
   }
 
   book(id, price, hs) async {
-
     Get.dialog(
       const Center(child: CircularProgressIndicator()),
       barrierDismissible: false,
@@ -838,7 +834,6 @@ class ServicesController extends GetxController with SnackBarMixin {
                                   } else {
                                     Get.back();
                                     bookNow(id, price);
-
                                   }
                                 },
                                 gradientColors: AppColors.primaryGradient,
@@ -890,12 +885,21 @@ class ServicesController extends GetxController with SnackBarMixin {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                SizedBox(height: 20.h),
+                SizedBox(height: 15.h),
+                CustomText(
+                  text:
+                      "Gcash Number: ${services.firstWhere((e) => e.id == id).gCashNumber ?? "Not available"}",
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w500,
+                ),
+                SizedBox(height: 10.h),
                 TextField(
+                  keyboardType: TextInputType.number,
                   onChanged: (value) => referenceNumber.value = value,
                   decoration: InputDecoration(
                     labelText: 'Reference Number',
                     labelStyle: GoogleFonts.poppins(color: AppColors.primary),
+
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8.r),
                       borderSide: BorderSide(color: AppColors.primary),

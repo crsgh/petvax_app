@@ -8,6 +8,8 @@ import 'package:petvax/app/mixins/snackbar.dart';
 import 'package:petvax/app/models/pet_model.dart';
 import 'package:petvax/screens/all/utility/settings_controller.dart';
 
+import '../../../../app/widgets/custom_text.dart';
+
 enum AddPetView { loading, loaded, error }
 
 class AddPetController extends GetxController with SnackBarMixin {
@@ -17,8 +19,8 @@ class AddPetController extends GetxController with SnackBarMixin {
   Pet? pet;
   // Form data
   final name = "".obs;
-  final specie = "".obs;
-  final breed = "".obs;
+  RxString specie = "".obs;
+  RxString? breed;
   final weight = "".obs;
 
   @override
@@ -27,8 +29,9 @@ class AddPetController extends GetxController with SnackBarMixin {
     pet = Get.arguments;
     if (pet != null) {
       name.value = pet!.name;
-      specie.value = pet!.species;
-      breed.value = pet!.breed ?? "";
+      specie = pet!.species.obs;
+      breed = pet!.breed?.obs;
+      birthDate.value = pet!.birthDate;
       weight.value = pet!.weight.toString();
       selectedGender.value = pet!.gender ?? "Male";
       selectedImage.value =
@@ -39,8 +42,8 @@ class AddPetController extends GetxController with SnackBarMixin {
     connect.baseUrl = AppStrings.baseUrl;
     // Add listeners for real-time validation
     name.listen((value) => validateName());
-    specie.listen((value) => validateSpecies());
-    breed.listen((value) => validateBreed());
+    specie?.listen((value) => validateSpecies());
+    breed?.listen((value) => validateBreed());
     weight.listen((value) => validateWeight());
     view(AddPetView.loaded);
   }
@@ -150,9 +153,9 @@ class AddPetController extends GetxController with SnackBarMixin {
   }
 
   void validateSpecies() {
-    if (specie.value.isEmpty) {
+    if (specie == null || specie!.isEmpty) {
       speciesError.value = 'Species is required';
-    } else if (specie.value.length > 255) {
+    } else if (specie!.value.length > 255) {
       speciesError.value = 'Species must be less than 255 characters';
     } else {
       speciesError.value = '';
@@ -160,7 +163,7 @@ class AddPetController extends GetxController with SnackBarMixin {
   }
 
   void validateBreed() {
-    if (breed.value.length > 255) {
+    if (breed!.value.length > 255) {
       breedError.value = 'Breed must be less than 255 characters';
     } else {
       breedError.value = '';
@@ -223,7 +226,7 @@ class AddPetController extends GetxController with SnackBarMixin {
       final formData = {
         'name': name.value,
         'species': specie.value.toString(),
-        'breed': breed.value.toString(),
+        'breed': breed!.value.toString(),
         'birth_date': birthDate.value?.toIso8601String().split('T')[0],
         'clinic_id': 7,
         'owner_id': settings.user!.id,
@@ -270,6 +273,31 @@ class AddPetController extends GetxController with SnackBarMixin {
     weightError.value = '';
     ownerError.value = '';
     clinicError.value = '';
+  }
+
+  List<DropdownMenuItem<String>> getBreeds(value) {
+    if (value == null || value.isEmpty) {
+      return [];
+    }
+    var specie =
+        settings.species
+            .firstWhere(
+              (e) => e.name == value,
+              orElse: () => settings.species.first,
+            )
+            .id;
+
+    var breeds =
+        settings.breeds
+            .where((item) => item.specieId.toString() == specie.toString())
+            .toList();
+
+    return breeds.map((item) {
+      return DropdownMenuItem<String>(
+        value: item.id.toString(),
+        child: CustomText(text: item.name, fontSize: 14),
+      );
+    }).toList();
   }
 }
 

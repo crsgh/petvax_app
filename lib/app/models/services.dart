@@ -11,6 +11,7 @@ class ServicesModel {
   int clinicId;
   String image;
   bool isHomeService;
+  String? gCashNumber;
 
   ServicesModel({
     required this.id,
@@ -23,6 +24,7 @@ class ServicesModel {
     required this.clinicId,
     required this.image,
     this.isHomeService = false,
+    this.gCashNumber,
   });
 
   factory ServicesModel.fromJson(Map<String, dynamic> json) {
@@ -38,6 +40,7 @@ class ServicesModel {
       image:
           json['image'] ?? "https://picsum.photos/200/30${Random().nextInt(9)}",
       isHomeService: (json['home_service'] ?? 0) == 0 ? false : true,
+      gCashNumber: json['gcash_number'],
     );
   }
 
@@ -52,6 +55,7 @@ class ServicesModel {
       'clinic_id': clinicId,
       'image': image,
       'is_home_service': isHomeService,
+      'gcash_number': gCashNumber,
     };
   }
 }

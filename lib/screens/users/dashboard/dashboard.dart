@@ -149,7 +149,14 @@ class DashboardScreen extends GetView<DashboardController> {
                   // Appointments Section
                   Obx(
                     () => AppointmentsSection(
-                      appointments: controller.settings.appointments.value,
+                      appointments:
+                          controller.settings.appointments
+                              .where(
+                                (e) =>
+                                    e.status != "confirmed" ||
+                                    e.status != "completed",
+                              )
+                              .toList(),
                       limit: 3,
                     ),
                   ),

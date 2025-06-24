@@ -19,8 +19,13 @@ class ClinicsController extends GetxController with SnackBarMixin {
 
   @override
   void onInit() async {
-    if (Get.arguments != null) searchQuery.text = Get.arguments['search_param'];
-    shownClinics(settings.clinics);
+    if (Get.arguments != null) {
+      searchQuery.text = Get.arguments['search_param'].text;
+      searchClinics(Get.arguments['search_param'].text);
+    } else {
+      shownClinics(settings.clinics);
+    }
+
     view(ClinicsView.loaded);
     super.onInit();
   }
@@ -121,6 +126,7 @@ class ClinicsController extends GetxController with SnackBarMixin {
 class ClinicsBinding extends Bindings {
   @override
   void dependencies() {
+    Get.lazyPut(() => Settings());
     Get.lazyPut<ClinicsController>(() => ClinicsController());
   }
 }

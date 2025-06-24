@@ -9,6 +9,7 @@ class Pet {
   final String? size;
   final String? gender;
   final String? image;
+  final DateTime? birthDate;
 
   Pet({
     required this.id,
@@ -21,6 +22,7 @@ class Pet {
     this.image,
     this.size,
     this.gender,
+    this.birthDate,
   });
 
   factory Pet.fromJson(json) {
@@ -35,6 +37,7 @@ class Pet {
       weight: double.tryParse(json['weight'] ?? "0.0") ?? 0.0,
       size: json['size'],
       gender: json['gender'],
+      birthDate: DateTime.tryParse(json['birth_date'] ?? '') ?? DateTime.now(),
     );
   }
 
@@ -50,6 +53,7 @@ class Pet {
       'size': size,
       'gender': gender,
       'image': image,
+      'birth_date': birthDate?.toIso8601String(),
     };
   }
 }
