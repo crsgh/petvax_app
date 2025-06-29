@@ -1,3 +1,5 @@
+import 'package:petvax/app/models/pet_model.dart';
+
 class Appointment {
   final int id;
   final String date;
@@ -8,6 +10,7 @@ class Appointment {
   final String status;
   final int rating;
   final int clinicId;
+  final Pet? pet;
 
   Appointment({
     required this.id,
@@ -18,6 +21,7 @@ class Appointment {
     required this.amount,
     required this.status,
     required this.clinicId,
+    this.pet,
     this.rating = 0,
   });
 
@@ -32,6 +36,7 @@ class Appointment {
       amount: json['total_amount'].toString(),
       status: json['status'],
       rating: json['stars'] ?? 0,
+      pet: json['pet'] != null ? Pet.fromJson(json['pet']) : null,
     );
   }
 }

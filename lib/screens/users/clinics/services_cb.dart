@@ -626,7 +626,7 @@ class ServicesController extends GetxController with SnackBarMixin {
                                           ),
                                         ),
                                         Text(
-                                          "${selectedHour.value}:00 ${selectedAmPm.value}",
+                                          "${selectedTime.value} ${selectedAmPm.value}",
                                           style: GoogleFonts.poppins(
                                             fontSize: 14.sp,
                                             fontWeight: FontWeight.w500,

@@ -17,10 +17,10 @@ class SignInView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         SizedBox(height: 10.h),
         PetVaxLogo(),
-
         // Header
         // CustomText(
         //   text: 'Welcome Back',

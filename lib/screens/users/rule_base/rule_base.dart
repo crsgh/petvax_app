@@ -159,98 +159,81 @@ class DiagnosticController extends GetxController {
   // Dog questions
   final Map<String, dynamic> dogQuestions = {
     'Q0': {
-      'question':
-          'Is your dog acting unusually (lethargic, irritable, restless)?',
+      'question': 'Is your dog acting unusually (lethargic, restless, aggressive)?',
       'yes': 'Q1',
       'no': 'END_OK',
     },
     'Q1': {
-      'question': 'Is your dog eating and drinking normally?',
-      'yes': 'Q4',
-      'no': 'Q2',
+      'question': 'Is your dog vomiting or having diarrhea?',
+      'yes': 'Q2',
+      'no': 'Q4',
     },
     'Q2': {
-      'question': 'Is your dog vomiting or having diarrhea?',
-      'yes': 'Q3',
-      'no': 'Q6',
+      'question': 'Is there blood in the vomit or stool?',
+      'yes': 'DIAG_PARVO',
+      'no': 'Q3',
     },
     'Q3': {
-      'question': 'Does vomit or stool contain blood?',
-      'yes': 'DIAG_PARVOVIRUS',
-      'no': 'Q13',
+      'question': 'Is your dog showing signs of jaundice (yellow eyes/skin)?',
+      'yes': 'DIAG_LEPTO',
+      'no': 'Q4',
     },
     'Q4': {
-      'question': 'Is your dog coughing, sneezing, or has nasal discharge?',
-      'yes': 'Q5',
-      'no': 'Q6',
+      'question': 'Does your dog have nasal discharge or sneezing?',
+      'yes': 'Q4a',
+      'no': 'Q5',
+    },
+    'Q4a': {
+      'question': 'Is your dog also showing fever or seizures?',
+      'yes': 'DIAG_DISTEMPER',
+      'no': 'END_MONITOR',
     },
     'Q5': {
-      'question': 'Is it a dry cough or discharge thickens at night?',
-      'yes': 'DIAG_HEARTCOUGH',
-      'no': 'DIAG_KENNELCOUGH',
+      'question': 'Is your dog coughing or easily tired after activity?',
+      'yes': 'DIAG_HEARTWORM',
+      'no': 'Q6',
     },
     'Q6': {
-      'question': 'Is your dog itching or has visible skin issues?',
+      'question': 'Has your dog been exposed to ticks recently?',
       'yes': 'Q7',
       'no': 'Q8',
     },
     'Q7': {
-      'question': 'Are fleas, mange, or skin wounds visible?',
-      'yes': 'DIAG_FLEAALLERGY',
-      'no': 'DIAG_DERMATITIS',
+      'question': 'Is your dog showing fever or joint pain?',
+      'yes': 'DIAG_TICKBORNE',
+      'no': 'Q8',
     },
     'Q8': {
-      'question': 'Is your dog limping or avoiding a limb?',
-      'yes': 'DIAG_INJURY',
+      'question': 'Is your dog excessively drooling or showing behavior changes?',
+      'yes': 'DIAG_RABIES',
       'no': 'Q9',
     },
     'Q9': {
-      'question': 'Are there swellings, bad smell, or oral/ear problems?',
-      'yes': 'Q10',
-      'no': 'Q11',
-    },
-    'Q10': {
-      'question': 'Which area is affected?',
-      'yes': 'DIAG_ORAL_EAR_SKIN',
-      'no': 'Q11',
-    },
-    'Q11': {
-      'question': 'Is your dog drinking/urinating more than usual?',
-      'yes': 'DIAG_DIABETES',
-      'no': 'Q12',
-    },
-    'Q12': {
-      'question': 'Any seizures, head tilt, or confusion?',
-      'yes': 'DIAG_NEURO',
+      'question': 'Is your dog constantly scratching or has inflamed skin?',
+      'yes': 'DIAG_SKIN',
       'no': 'END_MONITOR',
-    },
-    'Q13': {
-      'question': 'Is your dog in pain while chewing or eating?',
-      'yes': 'DIAG_DENTAL',
-      'no': 'DIAG_GASTRO',
     },
   };
 
   // Cat questions
   final Map<String, dynamic> catQuestions = {
     'Q0': {
-      'question':
-          'Is your cat acting differently (hiding, lethargy, vocalizing)?',
+      'question': 'Is your cat acting unusually (hiding, lethargy, vocalizing)?',
       'yes': 'Q1',
       'no': 'END_OK',
     },
     'Q1': {
-      'question': 'Is your cat eating and drinking normally?',
-      'yes': 'Q4',
-      'no': 'Q2',
+      'question': 'Is your cat eating or drinking less than usual?',
+      'yes': 'Q2',
+      'no': 'Q4',
     },
     'Q2': {
-      'question': 'Is your cat vomiting or having diarrhea?',
+      'question': 'Is your cat vomiting, has diarrhea, or shows digestive upset?',
       'yes': 'Q3',
       'no': 'Q6',
     },
     'Q3': {
-      'question': 'Does the vomit/stool contain blood?',
+      'question': 'Is there blood in the vomit or stool?',
       'yes': 'DIAG_PANLEUKOPENIA',
       'no': 'DIAG_GASTRITIS',
     },
@@ -260,40 +243,23 @@ class DiagnosticController extends GetxController {
       'no': 'Q6',
     },
     'Q5': {
-      'question': 'Are the eyes swollen or is there thick discharge?',
+      'question': 'Are the eyes swollen or has thick discharge?',
       'yes': 'DIAG_HERPESVIRUS',
       'no': 'DIAG_CALICIVIRUS',
     },
     'Q6': {
-      'question': 'Is your cat scratching, overgrooming, or has hair loss?',
-      'yes': 'Q7',
-      'no': 'Q8',
+      'question': 'Is your cat scratching, losing hair, or grooming excessively?',
+      'yes': 'DIAG_FLEAALLERGY',
+      'no': 'Q7',
     },
     'Q7': {
-      'question': 'Are fleas or skin lesions visible?',
-      'yes': 'DIAG_FLEAALLERGY',
-      'no': 'DIAG_PSYCHOGROOMING',
+      'question': 'Is your cat having trouble urinating or yowling in the litter box?',
+      'yes': 'DIAG_URETHRALBLOCK',
+      'no': 'Q8',
     },
     'Q8': {
-      'question': 'Is your cat using the litter box normally?',
-      'yes': 'Q9',
-      'no': 'Q10',
-    },
-    'Q9': {
-      'question': 'Is your cat drinking more or urinating more frequently?',
+      'question': 'Is your cat drinking or urinating more than usual?',
       'yes': 'DIAG_KIDNEYDISEASE',
-      'no': 'Q11',
-    },
-    'Q10': {
-      'question':
-          'Is the cat straining, yowling in pain, or producing little to no urine?',
-      'yes': 'DIAG_URETHRALBLOCK',
-      'no': 'DIAG_CONSTIPATION',
-    },
-    'Q11': {
-      'question':
-          'Is your cat showing any neurological signs (seizures, head tilt)?',
-      'yes': 'DIAG_NEURO',
       'no': 'END_MONITOR',
     },
   };
@@ -301,42 +267,27 @@ class DiagnosticController extends GetxController {
   // Dog diagnoses
   final Map<String, String> dogDiagnoses = {
     'END_OK': 'Your dog appears healthy. Continue regular checkups.',
-    'DIAG_PARVOVIRUS':
-        'Possible Parvovirus or severe gastroenteritis. Emergency care needed.',
-    'DIAG_KENNELCOUGH': 'Possible Kennel Cough or mild respiratory infection.',
-    'DIAG_HEARTCOUGH':
-        'Possible heart condition or tracheal collapse. Vet evaluation needed.',
-    'DIAG_FLEAALLERGY': 'Possible flea allergy or mange infection.',
-    'DIAG_DERMATITIS':
-        'Skin issue possibly due to allergy or fungal/bacterial infection.',
-    'DIAG_INJURY': 'Possible sprain, arthritis, or bone injury.',
-    'DIAG_ORAL_EAR_SKIN':
-        'Ear infection, dental issue, or skin abscess suspected.',
-    'DIAG_DIABETES': 'Possible diabetes or kidney-related condition.',
-    'DIAG_NEURO':
-        'Neurological symptoms suggest seizure disorder or vestibular issue.',
-    'DIAG_DENTAL': 'Dental pain or gum disease likely.',
-    'DIAG_GASTRO': 'Likely mild gastro issue or food intolerance.',
-    'END_MONITOR': 'Mild symptoms. Continue monitoring or consult vet.',
+    'END_MONITOR': 'Monitor your dog’s condition. If symptoms persist, consult your veterinarian.',
+    'DIAG_PARVO': 'Possible Canine Parvovirus. Severe vomiting and bloody diarrhea are critical. Emergency care is needed.',
+    'DIAG_DISTEMPER': 'Possible Canine Distemper. Affects the respiratory and nervous systems. Seek veterinary care immediately.',
+    'DIAG_HEARTWORM': 'Possible Heartworm Disease or Kennel Cough. Signs include cough and fatigue. Visit a vet for testing.',
+    'DIAG_TICKBORNE': 'Possible Ehrlichiosis or Anaplasmosis. Tick fever causes joint pain and fever. Vet treatment recommended.',
+    'DIAG_RABIES': 'Possible Rabies. Behavior changes, drooling, and paralysis are signs. Contact a vet and local authorities immediately.',
+    'DIAG_LEPTO': 'Possible Leptospirosis. Common in rainy seasons. Watch for vomiting and yellow eyes. Visit a vet promptly.',
+    'DIAG_SKIN': 'Possible skin allergy or infection. Hot climate causes flea/mite/fungal problems. Contact vet for proper treatment and grooming.',
   };
 
   // Cat diagnoses
   final Map<String, String> catDiagnoses = {
-    'END_OK': 'Your cat appears healthy. Continue regular checkups.',
-    'DIAG_PANLEUKOPENIA':
-        'Possible panleukopenia or toxin ingestion. Seek urgent vet care.',
-    'DIAG_GASTRITIS': 'Possible gastritis, hairballs, or food intolerance.',
-    'DIAG_HERPESVIRUS': 'Possible feline herpesvirus infection.',
-    'DIAG_CALICIVIRUS': 'Possible mild URI or feline calicivirus.',
-    'DIAG_FLEAALLERGY': 'Possible flea allergy dermatitis or mange.',
-    'DIAG_PSYCHOGROOMING': 'Possible psychogenic alopecia or allergies.',
-    'DIAG_KIDNEYDISEASE':
-        'Possible diabetes, kidney disease, or hyperthyroidism.',
-    'DIAG_URETHRALBLOCK':
-        'Possible FLUTD or urethral blockage. Urgent care needed.',
-    'DIAG_CONSTIPATION': 'Possible behavioral issue or constipation.',
-    'DIAG_NEURO': 'Possible neurological condition. Vet visit recommended.',
-    'END_MONITOR': 'Monitor your cat\'s condition or consult your vet.',
+    'END_OK': 'Your cat appears healthy. Continue regular checkups with your veterinarian.',
+    'END_MONITOR': 'Monitor your cat’s condition. If symptoms persist or worsen, consult your veterinarian.',
+    'DIAG_PANLEUKOPENIA': 'Possible viral gastrointestinal disease. Seek urgent veterinary care.',
+    'DIAG_GASTRITIS': 'Possible digestive issue such as gastritis, intolerance, or constipation. A veterinary consultation is recommended.',
+    'DIAG_HERPESVIRUS': 'Possible respiratory infection (FHV). Please consult your veterinarian for diagnosis and treatment.',
+    'DIAG_CALICIVIRUS': 'Possible respiratory infection (FCV). Monitor closely and visit your vet for further evaluation.',
+    'DIAG_FLEAALLERGY': 'Possible skin allergy or parasite issue (e.g. fleas, mange). Veterinary advice is recommended for proper treatment.',
+    'DIAG_KIDNEYDISEASE': 'Possible kidney or endocrine disease (e.g. diabetes, hyperthyroidism). Please consult your veterinarian promptly.',
+    'DIAG_URETHRALBLOCK': 'Possible urinary emergency. Seek veterinary care immediately.',
   };
 
   Map<String, dynamic> get questions =>

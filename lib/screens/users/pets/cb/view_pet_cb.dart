@@ -4,9 +4,12 @@ import 'package:petvax/app/constants/strings.dart';
 import 'package:petvax/app/models/medical_record_model.dart';
 import 'package:petvax/app/models/pet_model.dart';
 
+import '../../../all/utility/settings_controller.dart';
+
 class ViewPetController extends GetxController {
   var activeTab = 'overview'.obs;
   GetConnect connect = GetConnect();
+  Settings settings = Get.find<Settings>();
 
   Rx<Pet> pet =
       Pet(

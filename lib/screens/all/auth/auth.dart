@@ -19,6 +19,7 @@ class AuthScreen extends StatelessWidget {
 
     return Scaffold(
       body: Container(
+        height: Get.height,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -29,100 +30,53 @@ class AuthScreen extends StatelessWidget {
         child: SafeArea(
           child: SingleChildScrollView(
             padding: EdgeInsets.symmetric(horizontal: 20.w),
-            child: Column(
-              children: [
-                SizedBox(height: 20.h),
-
-                // Main Auth Card
-                Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.all(20.w),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.95),
-                    borderRadius: BorderRadius.circular(24.r),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
+            child: Container(
+              height: Get.height -50,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(height: 20.h),
+                  // Main Auth Card
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(20.w),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.95),
+                      borderRadius: BorderRadius.circular(24.r),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: Obx(() {
+                      switch (controller.currentView.value) {
+                        case 'signup':
+                          return SignUpView();
+                        case 'forgot':
+                          return ForgotPasswordView();
+                        default:
+                          return SignInView();
+                      }
+                    }),
                   ),
-                  child: Obx(() {
-                    switch (controller.currentView.value) {
-                      case 'signup':
-                        return SignUpView();
-                      case 'forgot':
-                        return ForgotPasswordView();
-                      default:
-                        return SignInView();
-                    }
-                  }),
-                ),
-
-                SizedBox(height: 24.h),
-
-                // Social Login Section
-                Obx(
-                  () =>
-                      controller.currentView.value == 'signin'
-                          ? Column(
-                            children: [
-                              // Divider
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Divider(color: Colors.grey[300]),
-                                  ),
-                                  Padding(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 16.w,
-                                    ),
-                                    child: CustomText(
-                                      text: 'Or continue with',
-                                      color: Colors.grey[500],
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Divider(color: Colors.grey[300]),
-                                  ),
-                                ],
-                              ),
-
-                              SizedBox(height: 24.h),
-
-                              // Social Buttons
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: SocialLoginButton(
-                                      text: 'Google',
-
-                                      onPressed: controller.signInWithGoogle,
-                                    ),
-                                  ),
-                                  SizedBox(width: 12.w),
-                                  Expanded(
-                                    child: SocialLoginButton(
-                                      text: 'Facebook',
-                                      icon: Icon(
-                                        Icons.facebook,
-                                        color: Colors.blue[600],
-                                        size: 20.sp,
-                                      ),
-                                      onPressed: controller.signInWithFacebook,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          )
-                          : const SizedBox.shrink(),
-                ),
-
-                SizedBox(height: 40.h),
-              ],
+                  SizedBox(height: 12.h),
+                  // Social Login Section
+                  Obx(
+                    () =>
+                        controller.currentView.value == 'signin'
+                            ? Column(
+                              children: [
+                                // Divider,
+                                SizedBox(height: 24.2),
+                              ],
+                            )
+                            : const SizedBox.shrink(),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

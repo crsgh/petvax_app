@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:petvax/app/constants/strings.dart';
@@ -32,15 +33,24 @@ class AddPetController extends GetxController with SnackBarMixin {
       print(pet!.toJson());
       name.value = pet!.name;
 
-      specie = settings.species.firstWhere((e)=> e.name.toLowerCase().toString() == pet!.species.toString()).name.toString().obs;
+      specie =
+          settings.species
+              .firstWhere(
+                (e) =>
+                    e.name.toLowerCase().toString() == pet!.species.toString(),
+              )
+              .name
+              .toString()
+              .obs;
       breed = pet!.breed?.obs;
       birthDate.value = pet!.birthDate;
       weight.value = pet!.weight.toString();
       selectedGender.value = pet!.gender ?? "Male";
-      // selectedImage( pet!.image != null
-      //     ? await _downloadAndSaveImage(AppStrings.imageUrl + pet!.image!)
-      //     : null);
-      // print(pet!.image ?? "Pashnea" );
+      selectedImage(
+        pet!.image != null
+            ? await _downloadAndSaveImage(AppStrings.imageUrl + pet!.image!)
+            : null,
+      );
     }
     connect.baseUrl = AppStrings.baseUrl;
     // Add listeners for real-time validation
@@ -99,21 +109,21 @@ class AddPetController extends GetxController with SnackBarMixin {
 
   Future<File?> _downloadAndSaveImage(String imageUrl) async {
     try {
-      final response = await GetConnect().get(AppStrings.imageUrl + imageUrl);
-      var dir = await getTemporaryDirectory();
-      if (response.status.isOk) {
-        final tempFile = File(
-          '${dir.path}/${DateTime.now().millisecondsSinceEpoch}.png',
-        );
+      final response = await http.get(Uri.parse(imageUrl));
 
-        // Write image data to file
-        await tempFile.writeAsBytes(response.bodyBytes as List<int>);
-        print(tempFile.path);
-        return tempFile;
+      if (response.statusCode == 200) {
+        final dir = await getTemporaryDirectory();
+        final filePath =
+            '${dir.path}/${DateTime.now().millisecondsSinceEpoch}.png';
+        final file = File(filePath);
+        await file.writeAsBytes(response.bodyBytes);
+        return file;
+      } else {
+        print('Failed to load image: ${response.statusCode}');
+        return null;
       }
-      return null;
     } catch (e) {
-      print('Error downloading image: $e');
+      print('Error: $e');
       return null;
     }
   }

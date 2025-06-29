@@ -27,6 +27,7 @@ dependencies:
   flutter_map: ^8.1.1
   latlong2: ^0.9.1
   path_provider: ^2.1.5
+  http: ^1.2.1
 
 dev_dependencies:
   flutter_test:
@@ -37,4 +38,3 @@ flutter:
   uses-material-design: true
   assets:
     - assets/img/
-    - assets/icons/

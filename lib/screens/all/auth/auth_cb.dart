@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:petvax/app/constants/strings.dart';
@@ -34,6 +36,28 @@ class AuthController extends GetxController {
   var fullName = ''.obs;
   var phone = ''.obs;
 
+  // Forgot Password variables
+  var otp = ''.obs;
+  var forgotPasswordStep = 'email'.obs; // 'email' or 'otp'
+  var isLoading = false.obs;
+  var userId = ''.obs;
+
+  // NEW: OTP Box controllers and values
+  final List<TextEditingController> otpControllers = List.generate(
+    6,
+    (index) => TextEditingController(),
+  );
+  final RxList<String> otpBoxes = List.generate(6, (index) => '').obs;
+
+  // NEW: Password reset fields
+  final RxString newPassword = ''.obs;
+  final RxString confirmNewPassword = ''.obs;
+  final RxBool showNewPassword = false.obs;
+  final RxBool showConfirmNewPassword = false.obs;
+
+  // GetConnect instance
+  final GetConnect _connect = GetConnect();
+
   // Methods
   void setCurrentView(String view) {
     currentView.value = view;
@@ -45,6 +69,15 @@ class AuthController extends GetxController {
 
   void toggleConfirmPasswordVisibility() {
     showConfirmPassword.value = !showConfirmPassword.value;
+  }
+
+  // NEW: Toggle new password visibility
+  void toggleNewPasswordVisibility() {
+    showNewPassword.value = !showNewPassword.value;
+  }
+
+  void toggleConfirmNewPasswordVisibility() {
+    showConfirmNewPassword.value = !showConfirmNewPassword.value;
   }
 
   void toggleTermsAcceptance() {
@@ -60,7 +93,7 @@ class AuthController extends GetxController {
   }
 
   void updateConfirmPassword(String value) {
-    confirmPassword.value = value;
+    confirmNewPassword.value = value;
   }
 
   void updateFullName(String value) {
@@ -69,6 +102,36 @@ class AuthController extends GetxController {
 
   void updatePhone(String value) {
     phone.value = value;
+  }
+
+  // Update methods
+  void updateOtp(String value) => otp.value = value;
+  void setForgotPasswordStep(String step) => forgotPasswordStep.value = step;
+
+  // NEW: OTP Box management
+  void updateOtpBox(int index, String value) {
+    otpBoxes[index] = value;
+    otpControllers[index].text = value;
+
+    // Update the main OTP string
+    otp.value = otpBoxes.join('');
+  }
+
+  void clearOtpBoxes() {
+    for (int i = 0; i < otpControllers.length; i++) {
+      otpControllers[i].clear();
+      otpBoxes[i] = '';
+    }
+    otp.value = '';
+  }
+
+  // NEW: Password reset field updates
+  void updateNewPassword(String value) {
+    newPassword.value = value;
+  }
+
+  void updateConfirmNewPassword(String value) {
+    confirmNewPassword.value = value;
   }
 
   // Authentication methods
@@ -92,7 +155,7 @@ class AuthController extends GetxController {
               onPrimary: () async {
                 UserModel user = UserModel.fromJson(res.body['user']);
                 await Storage.saveUser(user: user);
-                Get.deleteAll(force:true) ;
+                Get.deleteAll(force: true);
                 Get.put(Settings);
                 Get.offAllNamed('/splash');
               },
@@ -228,21 +291,6 @@ class AuthController extends GetxController {
     }
   }
 
-  void forgotPassword() {
-    print('Reset password for: ${email.value}');
-    // Implement your forgot password logic here
-  }
-
-  void signInWithGoogle() {
-    print('Sign in with Google');
-    // Implement Google sign in
-  }
-
-  void signInWithFacebook() {
-    print('Sign in with Facebook');
-    // Implement Facebook sign in
-  }
-
   void clearForm() {
     email.value = '';
     password.value = '';
@@ -252,6 +300,332 @@ class AuthController extends GetxController {
     showPassword.value = false;
     showConfirmPassword.value = false;
     acceptTerms.value = false;
+
+    // NEW: Clear forgot password form
+    clearOtpBoxes();
+    newPassword.value = '';
+    confirmNewPassword.value = '';
+    showNewPassword.value = false;
+    showConfirmNewPassword.value = false;
+    forgotPasswordStep.value = 'email';
+    userId.value = '';
+  }
+
+  // Forgot Password - Send Reset Link
+  Future<void> forgotPassword() async {
+    if (email.value.isEmpty) {
+      Get.snackbar(
+        'Error',
+        'Please enter your email address',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red[100],
+        colorText: Colors.red[800],
+      );
+      return;
+    }
+
+    if (!GetUtils.isEmail(email.value)) {
+      Get.snackbar(
+        'Error',
+        'Please enter a valid email address',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red[100],
+        colorText: Colors.red[800],
+      );
+      return;
+    }
+
+    isLoading.value = true;
+
+    try {
+      final response = await connect.post(
+        'mail',
+        {'type': 'forgot-password', 'email': email.value},
+        // headers: {
+        //   'Content-Type': 'application/json',
+        // },
+      );
+
+      if (response.hasError) {
+        Get.snackbar(
+          'Error',
+          'Network error. Please try again.',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.red[100],
+          colorText: Colors.red[800],
+        );
+        return;
+      }
+
+      final responseData = response.body;
+
+      if (response.statusCode == 200 && responseData['success'] == true) {
+        if (responseData['id'] != null) {
+          userId.value = responseData['id'].toString();
+        }
+
+        Get.snackbar(
+          'Success',
+          'Reset code sent to your email',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.green[100],
+          colorText: Colors.green[800],
+        );
+
+        // Switch to OTP step
+        setForgotPasswordStep('otp');
+      } else {
+        Get.snackbar(
+          'Error',
+          responseData['message'] ?? 'Failed to send reset link',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.red[100],
+          colorText: Colors.red[800],
+        );
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'An unexpected error occurred. Please try again.',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red[100],
+        colorText: Colors.red[800],
+      );
+      print('Forgot password error: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  // NEW: Updated Reset Password method (replaces verifyOtp)
+  Future<void> resetPassword() async {
+    // Validate OTP
+    if (otp.value.length != 4) {
+      Get.snackbar(
+        'Error',
+        'Please enter the complete verification code',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red[100],
+        colorText: Colors.red[800],
+      );
+      return;
+    }
+
+    // Validate new password
+    if (newPassword.value.isEmpty) {
+      Get.snackbar(
+        'Error',
+        'Please enter a new password',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red[100],
+        colorText: Colors.red[800],
+      );
+      return;
+    }
+
+    if (newPassword.value != confirmNewPassword.value) {
+      Get.snackbar(
+        'Error',
+        'Passwords do not match',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red[100],
+        colorText: Colors.red[800],
+      );
+      return;
+    }
+
+    if (newPassword.value.length < 6) {
+      Get.snackbar(
+        'Error',
+        'Password must be at least 6 characters',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red[100],
+        colorText: Colors.red[800],
+      );
+      return;
+    }
+
+    // if (userId.value.isEmpty) {
+    //   Get.snackbar(
+    //     'Error',
+    //     'Session expired. Please try again.',
+    //     snackPosition: SnackPosition.TOP,
+    //     backgroundColor: Colors.red[100],
+    //     colorText: Colors.red[800],
+    //   );
+    //   setForgotPasswordStep('email');
+    //   return;
+    // }
+
+    isLoading.value = true;
+
+    try {
+      final response = await connect.post(
+        'verify', // You might need to update this endpoint
+        {
+          'email' : email.value,
+          'otp': otp.value,
+          'new_password': newPassword.value,
+          //'password_confirmation': confirmNewPassword.value,
+        },
+      );
+      print("${newPassword.value}");
+      print("${confirmNewPassword.value}");
+      print("response: ${response.body}");
+      if (response.hasError) {
+
+        Get.snackbar(
+          'Error',
+          'Network error. Please try again.',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.red[100],
+          colorText: Colors.red[800],
+        );
+        return;
+      }
+
+      final responseData = response.body;
+
+      if (response.statusCode == 200 && responseData['success'] == true) {
+        Get.snackbar(
+          'Success',
+          'Password reset successful! Please sign in.',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.green[100],
+          colorText: Colors.green[800],
+        );
+
+        // Clear form and go back to signin
+        clearForm();
+        setCurrentView('signin');
+      } else {
+        Get.snackbar(
+          'Error',
+          responseData['message'] ?? 'Password reset failed. Please try again.',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.red[100],
+          colorText: Colors.red[800],
+        );
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'An unexpected error occurred. Please try again.',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red[100],
+        colorText: Colors.red[800],
+      );
+      print('Reset password error: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  // Keep the original verifyOtp method for backward compatibility if needed
+  Future<void> verifyOtp() async {
+    if (otp.value.isEmpty) {
+      Get.snackbar(
+        'Error',
+        'Please enter the OTP',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red[100],
+        colorText: Colors.red[800],
+      );
+      return;
+    }
+
+    if (userId.value.isEmpty) {
+      Get.snackbar(
+        'Error',
+        'Session expired. Please try again.',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red[100],
+        colorText: Colors.red[800],
+      );
+      setForgotPasswordStep('email');
+      return;
+    }
+
+    isLoading.value = true;
+
+    try {
+      final response = await connect.post(
+        'verify',
+        {'id': userId.value, 'otp': otp.value},
+        // headers: {
+        //   'Content-Type': 'application/json',
+        // },
+      );
+
+      if (response.hasError) {
+        Get.snackbar(
+          'Error',
+          'Network error. Please try again.',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.red[100],
+          colorText: Colors.red[800],
+        );
+        return;
+      }
+
+      final responseData = response.body;
+
+      if (response.statusCode == 200 && responseData['success'] == true) {
+        Get.snackbar(
+          'Success',
+          'Password reset successful! Please sign in.',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.green[100],
+          colorText: Colors.green[800],
+        );
+
+        // Clear form and go back to signin
+        clearForm();
+        setCurrentView('signin');
+      } else {
+        Get.snackbar(
+          'Error',
+          responseData['message'] ?? 'Invalid OTP. Please try again.',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.red[100],
+          colorText: Colors.red[800],
+        );
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'An unexpected error occurred. Please try again.',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red[100],
+        colorText: Colors.red[800],
+      );
+      print('Verify OTP error: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  // Resend OTP
+  Future<void> resendOtp() async {
+    await forgotPassword();
+  }
+
+  // Go back to email step
+  void backToEmailStep() {
+    setForgotPasswordStep('email');
+    clearOtpBoxes();
+    newPassword.value = '';
+    confirmNewPassword.value = '';
+  }
+
+  @override
+  void onClose() {
+    // NEW: Dispose OTP controllers
+    for (var controller in otpControllers) {
+      controller.dispose();
+    }
+    _connect.httpClient.close();
+    super.onClose();
   }
 }
 

@@ -145,17 +145,23 @@ class ViewPet extends GetView<ViewPetController> {
                         ),
                       ),
                       Text(
-                        controller.settings.breed.firstWhere(
-                          (breed) => breed.id == controller.pet.value.breed,
-                          orElse: () => controller.settings.breed.first,
-                        ).name ?? "Unknown",
+                        controller.settings.breeds
+                                .firstWhere(
+                                  (breed) =>
+                                      breed.id.toString() ==
+                                      controller.pet.value.breed.toString(),
+                                  orElse:
+                                      () => controller.settings.breeds.first,
+                                )
+                                .name ??
+                            "Unknown",
                         style: GoogleFonts.poppins(
                           fontSize: 16.sp,
                           color: Colors.indigo.shade100,
                         ),
                       ),
                       Text(
-                        '${controller.pet.value.age} • ${controller.pet.value.gender}',
+                        '${controller.pet.value.birthDate != null ? "${DateTime.now().difference(controller.pet.value.birthDate!).inDays ~/ 365} years" : "Unknown"} • ${controller.pet.value.gender}',
                         style: GoogleFonts.poppins(
                           fontSize: 14.sp,
                           color: Colors.indigo.shade100,
@@ -256,21 +262,29 @@ class ViewPet extends GetView<ViewPetController> {
                         ),
                       ),
                       Text(
-(() {
-  if (controller.pet.value.weight == null) return "Unknown";
-  
-  if (controller.pet.value.species.toLowerCase() == 'canine') {
-    if (controller.pet.value.weight! < 10) return "Small";
-    if (controller.pet.value.weight! < 25) return "Medium";
-    return "Large";
-  } else if (controller.pet.value.species.toLowerCase() == 'feline') {
-    if (controller.pet.value.weight! < 3.5) return "Small";
-    if (controller.pet.value.weight! < 6) return "Medium";
-    return "Large";
-  }
-  
-  return "Unknown";
-})(),
+                        (() {
+                          if (controller.pet.value.weight == null)
+                            return "Unknown";
+
+                          if (controller.pet.value.species.toLowerCase() ==
+                              'canine') {
+                            if (controller.pet.value.weight! < 10)
+                              return "Small";
+                            if (controller.pet.value.weight! < 25)
+                              return "Medium";
+                            return "Large";
+                          } else if (controller.pet.value.species
+                                  .toLowerCase() ==
+                              'feline') {
+                            if (controller.pet.value.weight! < 3.5)
+                              return "Small";
+                            if (controller.pet.value.weight! < 6)
+                              return "Medium";
+                            return "Large";
+                          }
+
+                          return "Unknown";
+                        })(),
                         style: GoogleFonts.poppins(
                           fontSize: 16.sp,
                           fontWeight: FontWeight.bold,

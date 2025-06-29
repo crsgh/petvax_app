@@ -451,7 +451,7 @@ class AppointmentCard extends StatelessWidget {
                   ),
                   SizedBox(width: 8.w),
                   SizedBox(
-                    width: Get.width -110.w,
+                    width: Get.width - 110.w,
                     child: Text(
                       appointment.clinicName,
                       overflow: TextOverflow.ellipsis,
@@ -612,12 +612,30 @@ class AppointmentCard extends StatelessWidget {
                       color: const Color(0xFF6B7280),
                     ),
                     SizedBox(width: 8.w),
-                    Text(
-                      appointment.petName,
-                      style: GoogleFonts.poppins(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w500,
-                        color: const Color(0xFF111827),
+                    GestureDetector(
+                      onTap: () {
+                        if (appointment.pet == null) {
+                          Get.snackbar(
+                            'No Pet',
+                            'This appointment has no associated pet.',
+                            snackPosition: SnackPosition.BOTTOM,
+                            backgroundColor: Colors.red.withOpacity(0.8),
+                            colorText: Colors.white,
+                          );
+                          return;
+                        }
+                        Get.toNamed(
+                          '/view-pet/${appointment.pet?.id}',
+                          arguments: appointment.pet!,
+                        );
+                      },
+                      child: Text(
+                        appointment.petName,
+                        style: GoogleFonts.poppins(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0xFF111827),
+                        ),
                       ),
                     ),
                   ],
