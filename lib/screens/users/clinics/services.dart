@@ -314,6 +314,24 @@ class Services extends GetView<ServicesController> {
                   ],
                 ),
               ),
+              GestureDetector(
+                onTap: () {
+                  controller.activeIndex(3);
+                },
+                child: Column(
+                  children: [
+                    CustomText(text: "Others"),
+                    Container(
+                      height: 2.h,
+                      width: 30.w,
+                      color:
+                      controller.activeIndex.value == 3
+                          ? AppColors.primary
+                          : Colors.transparent,
+                    ),
+                  ],
+                ),
+              ),
               Container(),
             ],
           ),
@@ -335,12 +353,17 @@ class Services extends GetView<ServicesController> {
                     controller.services
                         .where((s) => s.category == 'deworming')
                         .toList(),
+                'others':
+                    controller.services
+                        .where((s) => s.category == 'others')
+                        .toList(),
               };
 
               final currentServices = switch (controller.activeIndex.value) {
                 0 => services['grooming'],
                 1 => services['vaccine'],
                 2 => services['deworming'],
+                3 => services['others'],
                 _ => <ServicesModel>[],
               };
 

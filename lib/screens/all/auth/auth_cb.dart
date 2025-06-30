@@ -30,8 +30,8 @@ class AuthController extends GetxController {
   var acceptTerms = false.obs;
 
   // Form data
-  var email = 'admin@petvax.com'.obs;
-  var password = 'asdasd123'.obs;
+  var email = ''.obs;
+  var password = ''.obs;
   var confirmPassword = ''.obs;
   var fullName = ''.obs;
   var phone = ''.obs;
@@ -191,6 +191,8 @@ class AuthController extends GetxController {
 
   void signUp() async {
     // Validate inputs
+    print("password: ${password.value}");
+    print("confirm password: ${confirmNewPassword.value}");
     if (fullName.value.isEmpty ||
         email.value.isEmpty ||
         password.value.isEmpty) {
@@ -212,7 +214,7 @@ class AuthController extends GetxController {
       return;
     }
 
-    if (password.value != confirmPassword.value) {
+    if (password.value != confirmNewPassword.value) {
       showDialog(
         context: Get.context!,
         builder:
