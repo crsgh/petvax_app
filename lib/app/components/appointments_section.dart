@@ -202,33 +202,87 @@ class AppointmentsSection extends StatelessWidget {
                                         children: [
                                           SizedBox(width: 5.w),
                                           GestureDetector(
-                                            onTap: () async {
-                                              var res = await GetConnect().get(
-                                                '${AppStrings.baseUrl}booking/update/${appointment.id}/cancelled',
+                                            onTap: () {
+                                              String reason = "";
+
+                                              Get.defaultDialog(
+                                                title: "Cancel Appointment",
+                                                content: Column(
+                                                  children: [
+                                                    CustomText(
+                                                      text: "Please provide a reason for cancellation:",
+                                                      fontSize: 14,
+                                                      color: Colors.grey[800],
+                                                    ),
+                                                    SizedBox(height: 10.h),
+                                                    TextField(
+                                                      controller: TextEditingController(),
+                                                      decoration: InputDecoration(
+                                                        hintText: "Enter reason",
+                                                        border: OutlineInputBorder(
+                                                          borderRadius: BorderRadius.circular(8.r),
+                                                        ),
+                                                      ),
+                                                      maxLines: 3,
+                                                      onChanged: (value) {
+                                                        // Store reason in variable
+                                                        reason = value;
+                                                      },
+                                                    ),
+                                                  ],
+                                                ),
+                                                confirm: GradientButton(
+                                                  gradientColors: [
+                                                    Colors.red,
+                                                    Colors.red.withOpacity(0.7),
+                                                  ],
+                                                  onPressed: () async {
+                                                    if (reason.isEmpty) {
+                                                      Get.snackbar(
+                                                        "Error",
+                                                        "Please provide a reason",
+                                                        snackPosition: SnackPosition.BOTTOM,
+                                                        backgroundColor: Colors.red.withOpacity(0.1),
+                                                        colorText: Colors.red,
+                                                      );
+                                                      return;
+                                                    }
+                                                    
+                                                    var res = await GetConnect().get(
+                                                      '${AppStrings.baseUrl}booking/update/${appointment.id}/cancelled?reason=$reason',
+                                                    );
+                                                    
+                                                    if (res.body['status'] == "success") {
+                                                      Get.back();
+                                                      Get.snackbar(
+                                                        "Success",
+                                                        "Appointment cancelled successfully",
+                                                        snackPosition: SnackPosition.BOTTOM,
+                                                        backgroundColor: Colors.green.withOpacity(0.1),
+                                                        colorText: Colors.green,
+                                                      );
+                                                    } else {
+                                                      Get.back();
+                                                      Get.snackbar(
+                                                        "Error",
+                                                        "Failed to cancel appointment",
+                                                        snackPosition: SnackPosition.BOTTOM,
+                                                        backgroundColor: Colors.red.withOpacity(0.1),
+                                                        colorText: Colors.red,
+                                                      );
+                                                    }
+                                                  },
+                                                  text: "Submit",
+                                                ),
+                                                cancel: TextButton(
+                                                  onPressed: () => Get.back(),
+                                                  child: CustomText(
+                                                    text: "Cancel",
+                                                    fontSize: 14,
+                                                    color: Colors.grey[600],
+                                                  ),
+                                                ),
                                               );
-                                              print(res.body);
-                                              if (res.body['status'] ==
-                                                  "success") {
-                                                Get.snackbar(
-                                                  "Success",
-                                                  "Appointment cancelled successfully",
-                                                  snackPosition:
-                                                      SnackPosition.BOTTOM,
-                                                  backgroundColor: Colors.green
-                                                      .withOpacity(0.1),
-                                                  colorText: Colors.green,
-                                                );
-                                              } else {
-                                                Get.snackbar(
-                                                  "Error",
-                                                  "Failed to cancel appointment",
-                                                  snackPosition:
-                                                      SnackPosition.BOTTOM,
-                                                  backgroundColor: Colors.red
-                                                      .withOpacity(0.1),
-                                                  colorText: Colors.red,
-                                                );
-                                              }
                                             },
                                             child: Icon(
                                               Icons.cancel,
@@ -236,7 +290,7 @@ class AppointmentsSection extends StatelessWidget {
                                               size: 22.sp,
                                             ),
                                           ),
-                                        ],
+                                          ],
                                       )
                                       : Container(),
                                 ],
