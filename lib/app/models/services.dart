@@ -12,6 +12,7 @@ class ServicesModel {
   String image;
   bool isHomeService;
   String? gCashNumber;
+  List<Map<String, dynamic>> vets = [];
 
   ServicesModel({
     required this.id,
@@ -23,6 +24,7 @@ class ServicesModel {
     required this.size,
     required this.clinicId,
     required this.image,
+    required this.vets,
     this.isHomeService = false,
     this.gCashNumber,
   });
@@ -41,6 +43,8 @@ class ServicesModel {
           json['image'] ?? "https://picsum.photos/200/30${Random().nextInt(9)}",
       isHomeService: (json['home_service'] ?? 0) == 0 ? false : true,
       gCashNumber: json['gcash_number'],
+      vets:
+          (json['vets'] as List).map((e) => e as Map<String, dynamic>).toList(),
     );
   }
 

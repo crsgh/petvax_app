@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -9,6 +10,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:paymongo_sdk/paymongo_sdk.dart' hide Paymongo;
 import 'package:petvax/app/constants/colors.dart';
 import 'package:petvax/app/constants/strings.dart';
 import 'package:petvax/app/mixins/snackbar.dart';
@@ -18,8 +20,10 @@ import 'package:petvax/app/widgets/gradient_button.dart';
 import 'package:petvax/screens/all/utility/settings_controller.dart';
 import 'package:table_calendar/table_calendar.dart';
 
+import '../../../app/components/webview.dart';
 import '../../../app/models/pet_model.dart';
 import '../../../app/models/services.dart';
+import '../../../app/services/paymongo.dart';
 
 enum ServicesView { loading, loaded, error }
 
@@ -29,6 +33,7 @@ class ServicesController extends GetxController with SnackBarMixin {
   GetConnect connect = GetConnect();
   RxBool termsVisible = true.obs;
   RxString selectedPet = ''.obs;
+  RxString selectedVet = ''.obs;
   RxInt activeIndex = 0.obs;
   Rx<DateTime> selectedDate = DateTime.now().obs;
   RxInt selectedHour = 8.obs;
@@ -134,12 +139,15 @@ class ServicesController extends GetxController with SnackBarMixin {
               )
               .id,
       "client_id": settings.user!.id,
-      "staff_id": null,
+      "staff_id": selectedVet.value,
       "appointment_datetime": dateTime,
       "notes": "any",
       "total_amount": amount,
       "status": "pending",
-      "payment_method": selectedPaymentMethod,
+      "payment_method":
+          selectedPaymentMethod.contains("gcash")
+              ? "gcash"
+              : selectedPaymentMethod.value,
       "payment_reference": referenceNumber.value,
     };
 
@@ -151,6 +159,7 @@ class ServicesController extends GetxController with SnackBarMixin {
 
     var res = await connect.post('booking/add', FormData(body));
     Get.back();
+    print("body: ${res.body}");
 
     if (res.body['status'] == 'success') {
       final bookingId = res.body['data']['id'];
@@ -171,12 +180,14 @@ class ServicesController extends GetxController with SnackBarMixin {
       }
 
       showSuccessSnackBar("Booking has been scheduled!");
+      return bookingId;
     } else {
       showErrorSnackbar("Something went wrong, try again or contact admin!");
     }
+    return null;
   }
 
-  book(id, price, hs) async {
+  book(id, price, hs, vets) async {
     Get.dialog(
       const Center(child: CircularProgressIndicator()),
       barrierDismissible: false,
@@ -184,6 +195,7 @@ class ServicesController extends GetxController with SnackBarMixin {
     // Reset all input values to default
     //selectedPet.value = pets.isNotEmpty ? pets[0].name : '';
     selectedDate.value = DateTime.now();
+    selectedVet.value = vets.isNotEmpty ? vets[0]['id'].toString() : '';
     isDateAvailable.value = true;
     availableSlots.clear();
     shownTime.clear();
@@ -584,6 +596,48 @@ class ServicesController extends GetxController with SnackBarMixin {
                                   ),
                                 ),
                               ),
+                              SizedBox(height: 5.h),
+                              Container(
+                                padding: EdgeInsets.symmetric(horizontal: 15.w),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(8.r),
+                                  border: Border.all(
+                                    color: AppColors.primary.withOpacity(0.3),
+                                  ),
+                                ),
+                                child: Obx(
+                                  () => DropdownButtonHideUnderline(
+                                    child: DropdownButton<String>(
+                                      isExpanded: true,
+                                      value: selectedVet.value,
+                                      icon: const Icon(
+                                        Icons.keyboard_arrow_down,
+                                        color: AppColors.primary,
+                                      ),
+                                      items:
+                                          vets
+                                              .map<DropdownMenuItem<String>>(
+                                                (
+                                                  vet,
+                                                ) => DropdownMenuItem<String>(
+                                                  value: vet['id'].toString(),
+                                                  child: Text(
+                                                    vet['name'].toString(),
+                                                    style: GoogleFonts.poppins(
+                                                      fontSize: 14.sp,
+                                                    ),
+                                                  ),
+                                                ),
+                                              )
+                                              .toList(),
+                                      onChanged: (value) {
+                                        selectedVet.value = value!;
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              ),
                               SizedBox(height: 20.h),
                               Container(
                                 padding: EdgeInsets.all(15.w),
@@ -701,7 +755,31 @@ class ServicesController extends GetxController with SnackBarMixin {
                                           activeColor: AppColors.primary,
                                         ),
                                         title: Text(
-                                          'GCash',
+                                          'GCash ( Reference # )',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 14.sp,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                        trailing: Icon(
+                                          Icons.account_balance_wallet,
+                                          color: AppColors.primary,
+                                        ),
+                                      ),
+                                      Divider(height: 1),
+                                      ListTile(
+                                        leading: Radio(
+                                          value: 'gcash_api',
+                                          groupValue:
+                                              selectedPaymentMethod.value,
+                                          onChanged: (value) {
+                                            selectedPaymentMethod.value =
+                                                value!;
+                                          },
+                                          activeColor: AppColors.primary,
+                                        ),
+                                        title: Text(
+                                          'GCash API',
                                           style: GoogleFonts.poppins(
                                             fontSize: 14.sp,
                                             fontWeight: FontWeight.w500,
@@ -719,7 +797,7 @@ class ServicesController extends GetxController with SnackBarMixin {
                               SizedBox(height: 10.h),
                               GradientButton(
                                 text: "Proceed with Booking",
-                                onPressed: () {
+                                onPressed: () async {
                                   if (isHomeService.value) {
                                     Get.back();
                                     Get.bottomSheet(
@@ -831,6 +909,42 @@ class ServicesController extends GetxController with SnackBarMixin {
                                   } else if (selectedPaymentMethod.value ==
                                       "gcash") {
                                     gcashPopUp(id, price);
+                                  } else if (selectedPaymentMethod.value ==
+                                      "gcash_api") {
+                                    try {
+                                      int? bookId = await bookNow(id, price);
+                                      showPaymentDialog(
+                                        Get.context!,
+                                        bookId!.toString(),
+                                      );
+                                      final source = await Paymongo()
+                                          .makePayment(
+                                            amount: price,
+                                            id: bookId,
+                                          );
+
+                                      final redirectUrl =
+                                          source
+                                              .attributes
+                                              ?.redirect
+                                              .checkoutUrl;
+
+                                      if (redirectUrl != null) {
+                                        Get.to(
+                                          () => PaymongoWebView(
+                                            checkoutUrl: redirectUrl,
+                                          ),
+                                        );
+                                      } else {
+                                        Get.snackbar(
+                                          "Payment Error",
+                                          "No redirect URL found.",
+                                        );
+                                      }
+                                    } catch (e, ex) {
+                                      print(ex);
+                                      print("error $e");
+                                    }
                                   } else {
                                     Get.back();
                                     bookNow(id, price);
@@ -1052,6 +1166,77 @@ class ServicesController extends GetxController with SnackBarMixin {
             .where((slot) => slot['isAM'] == isAm)
             .map((slot) => slot['time'] as String)
             .toList();
+  }
+
+  void showPaymentDialog(BuildContext context, String paymentId) {
+    late Timer timer;
+    RxBool isSuccess = false.obs;
+    bool timerStarted = false;
+    bool isDialogClosed = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            // Start polling only once
+            if (!timerStarted) {
+              timerStarted = true;
+              timer = Timer.periodic(Duration(seconds: 1), (Timer t) async {
+                final response = await connect.get('payment/$paymentId');
+
+                if (response.statusCode == 200) {
+                  final data = response.body;
+                  if (data['success'] == true && !isSuccess.value) {
+                    timer.cancel();
+                    isSuccess.value = true;
+
+                    // Delay before closing
+                    Future.delayed(Duration(seconds: 3), () {
+                      if (!isDialogClosed) {
+                        Navigator.of(context).pop();
+                        Navigator.of(context).pop();
+                        isDialogClosed = true;
+                      }
+                    });
+                  }
+                }
+              });
+            }
+
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              content: SizedBox(
+                height: 150,
+                width: 150,
+                child: Obx(
+                  () => Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (!isSuccess.value) ...[
+                        CircularProgressIndicator(),
+                        SizedBox(height: 20),
+                        Text("Processing payment..."),
+                      ] else ...[
+                        Icon(Icons.check_circle, color: Colors.green, size: 48),
+                        SizedBox(height: 20),
+                        CustomText(text: "Payment Successful!"),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    ).then((_) async {
+      var res = await connect.get('payment/closed/$paymentId');
+      if (timer.isActive) timer.cancel();
+    });
   }
 }
 

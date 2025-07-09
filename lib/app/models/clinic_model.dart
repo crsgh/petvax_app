@@ -45,7 +45,10 @@ class Clinic {
       latitude: double.parse(json['latitude']),
       longitude: double.parse(json['longitude']),
       averageStars: double.parse(json['stars_average'] ?? "0.0"),
-      tags: jsonDecode(json['tags'] ?? '[]'),
+      tags:
+          json['tags'].runtimeType == String
+              ? jsonDecode(json['tags'] ?? '[]')
+              : json['tags'] ?? [],
     );
   }
 }

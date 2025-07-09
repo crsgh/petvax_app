@@ -28,6 +28,11 @@ dependencies:
   latlong2: ^0.9.1
   path_provider: ^2.1.5
   http: ^1.2.1
+  webview_flutter: ^4.4.1
+  paymongo_sdk:
+    git:
+      url: https://github.com/niikocap/paymongo_sdk.git
+      ref: main
 
 dev_dependencies:
   flutter_test:

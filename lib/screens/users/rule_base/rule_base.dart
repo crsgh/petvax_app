@@ -1,14 +1,21 @@
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:petvax/app/widgets/custom_text.dart';
+import 'dart:convert';
 
-class RuleBase extends StatelessWidget {
-  const RuleBase({super.key});
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+import '../../../app/constants/strings.dart';
+import '../../../app/models/rule_base_model.dart';
+import '../../../app/widgets/custom_text.dart';
+
+class RuleBaseScreen extends StatelessWidget {
+  const RuleBaseScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Initialize the controller here to ensure it persists
+    Get.put(RuleBaseController(), permanent: true);
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -82,7 +89,6 @@ class RuleBase extends StatelessWidget {
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                         color: Colors.teal[200],
-                        //decoration: TextDecoration.underline,
                       ),
                     ),
                   ),
@@ -137,7 +143,43 @@ class RuleBase extends StatelessWidget {
   }
 }
 
-class RuleBaseController extends GetxController {}
+class RuleBaseController extends GetxController {
+  var isLoading = false.obs;
+  var rules = <RuleBase>[].obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    loadRuleBaseData();
+  }
+
+  Future<void> loadRuleBaseData() async {
+    try {
+      isLoading.value = true;
+
+      // Simulate API call delay
+      await Future.delayed(Duration(seconds: 2));
+
+      // Load your rule base data here
+      await _loadRules();
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to load diagnostic data: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> _loadRules() async {
+    var res = await GetConnect().get('${AppStrings.baseUrl}rule-base');
+    // Fixed: Direct mapping without JSON decoding since data is already parsed
+    List<Map<String, dynamic>> ruleData = List<Map<String, dynamic>>.from(
+      res.body['data'],
+    );
+
+    print("data: ${res.body}");
+    rules.value = ruleData.map((json) => RuleBase.fromJson(json)).toList();
+  }
+}
 
 class RuleBaseBinding extends Bindings {
   @override
@@ -150,167 +192,105 @@ enum PetType { dog, cat }
 
 class DiagnosticController extends GetxController {
   final PetType petType;
+  late final RuleBaseController ruleBaseController;
 
   DiagnosticController(this.petType);
 
-  var currentStep = 'Q0'.obs;
-  var diagnosis = Rx<String?>(null);
+  var currentStep = ''.obs;
+  var finalResult = Rx<String?>(null);
+  var isLoading = false.obs;
 
-  // Dog questions
-  final Map<String, dynamic> dogQuestions = {
-    'Q0': {
-      'question': 'Is your dog acting unusually (lethargic, restless, aggressive)?',
-      'yes': 'Q1',
-      'no': 'END_OK',
-    },
-    'Q1': {
-      'question': 'Is your dog vomiting or having diarrhea?',
-      'yes': 'Q2',
-      'no': 'Q4',
-    },
-    'Q2': {
-      'question': 'Is there blood in the vomit or stool?',
-      'yes': 'DIAG_PARVO',
-      'no': 'Q3',
-    },
-    'Q3': {
-      'question': 'Is your dog showing signs of jaundice (yellow eyes/skin)?',
-      'yes': 'DIAG_LEPTO',
-      'no': 'Q4',
-    },
-    'Q4': {
-      'question': 'Does your dog have nasal discharge or sneezing?',
-      'yes': 'Q4a',
-      'no': 'Q5',
-    },
-    'Q4a': {
-      'question': 'Is your dog also showing fever or seizures?',
-      'yes': 'DIAG_DISTEMPER',
-      'no': 'END_MONITOR',
-    },
-    'Q5': {
-      'question': 'Is your dog coughing or easily tired after activity?',
-      'yes': 'DIAG_HEARTWORM',
-      'no': 'Q6',
-    },
-    'Q6': {
-      'question': 'Has your dog been exposed to ticks recently?',
-      'yes': 'Q7',
-      'no': 'Q8',
-    },
-    'Q7': {
-      'question': 'Is your dog showing fever or joint pain?',
-      'yes': 'DIAG_TICKBORNE',
-      'no': 'Q8',
-    },
-    'Q8': {
-      'question': 'Is your dog excessively drooling or showing behavior changes?',
-      'yes': 'DIAG_RABIES',
-      'no': 'Q9',
-    },
-    'Q9': {
-      'question': 'Is your dog constantly scratching or has inflamed skin?',
-      'yes': 'DIAG_SKIN',
-      'no': 'END_MONITOR',
-    },
-  };
+  @override
+  void onInit() {
+    super.onInit();
+    // Get or create the RuleBaseController
+    ruleBaseController = Get.find<RuleBaseController>();
+    // Start with the first rule for the selected pet type
+    _setInitialStep();
+  }
 
-  // Cat questions
-  final Map<String, dynamic> catQuestions = {
-    'Q0': {
-      'question': 'Is your cat acting unusually (hiding, lethargy, vocalizing)?',
-      'yes': 'Q1',
-      'no': 'END_OK',
-    },
-    'Q1': {
-      'question': 'Is your cat eating or drinking less than usual?',
-      'yes': 'Q2',
-      'no': 'Q4',
-    },
-    'Q2': {
-      'question': 'Is your cat vomiting, has diarrhea, or shows digestive upset?',
-      'yes': 'Q3',
-      'no': 'Q6',
-    },
-    'Q3': {
-      'question': 'Is there blood in the vomit or stool?',
-      'yes': 'DIAG_PANLEUKOPENIA',
-      'no': 'DIAG_GASTRITIS',
-    },
-    'Q4': {
-      'question': 'Is your cat sneezing, coughing, or has nasal/eye discharge?',
-      'yes': 'Q5',
-      'no': 'Q6',
-    },
-    'Q5': {
-      'question': 'Are the eyes swollen or has thick discharge?',
-      'yes': 'DIAG_HERPESVIRUS',
-      'no': 'DIAG_CALICIVIRUS',
-    },
-    'Q6': {
-      'question': 'Is your cat scratching, losing hair, or grooming excessively?',
-      'yes': 'DIAG_FLEAALLERGY',
-      'no': 'Q7',
-    },
-    'Q7': {
-      'question': 'Is your cat having trouble urinating or yowling in the litter box?',
-      'yes': 'DIAG_URETHRALBLOCK',
-      'no': 'Q8',
-    },
-    'Q8': {
-      'question': 'Is your cat drinking or urinating more than usual?',
-      'yes': 'DIAG_KIDNEYDISEASE',
-      'no': 'END_MONITOR',
-    },
-  };
+  void _setInitialStep() {
+    // Wait for rules to load if they haven't already
+    if (ruleBaseController.rules.isEmpty &&
+        !ruleBaseController.isLoading.value) {
+      ruleBaseController.loadRuleBaseData();
+    }
 
-  // Dog diagnoses
-  final Map<String, String> dogDiagnoses = {
-    'END_OK': 'Your dog appears healthy. Continue regular checkups.',
-    'END_MONITOR': 'Monitor your dog’s condition. If symptoms persist, consult your veterinarian.',
-    'DIAG_PARVO': 'Possible Canine Parvovirus. Severe vomiting and bloody diarrhea are critical. Emergency care is needed.',
-    'DIAG_DISTEMPER': 'Possible Canine Distemper. Affects the respiratory and nervous systems. Seek veterinary care immediately.',
-    'DIAG_HEARTWORM': 'Possible Heartworm Disease or Kennel Cough. Signs include cough and fatigue. Visit a vet for testing.',
-    'DIAG_TICKBORNE': 'Possible Ehrlichiosis or Anaplasmosis. Tick fever causes joint pain and fever. Vet treatment recommended.',
-    'DIAG_RABIES': 'Possible Rabies. Behavior changes, drooling, and paralysis are signs. Contact a vet and local authorities immediately.',
-    'DIAG_LEPTO': 'Possible Leptospirosis. Common in rainy seasons. Watch for vomiting and yellow eyes. Visit a vet promptly.',
-    'DIAG_SKIN': 'Possible skin allergy or infection. Hot climate causes flea/mite/fungal problems. Contact vet for proper treatment and grooming.',
-  };
+    // Find the first rule for the selected pet type
+    final firstRule = rules.firstWhereOrNull(
+      (rule) => rule.target.toLowerCase() == petName.toLowerCase(),
+    );
 
-  // Cat diagnoses
-  final Map<String, String> catDiagnoses = {
-    'END_OK': 'Your cat appears healthy. Continue regular checkups with your veterinarian.',
-    'END_MONITOR': 'Monitor your cat’s condition. If symptoms persist or worsen, consult your veterinarian.',
-    'DIAG_PANLEUKOPENIA': 'Possible viral gastrointestinal disease. Seek urgent veterinary care.',
-    'DIAG_GASTRITIS': 'Possible digestive issue such as gastritis, intolerance, or constipation. A veterinary consultation is recommended.',
-    'DIAG_HERPESVIRUS': 'Possible respiratory infection (FHV). Please consult your veterinarian for diagnosis and treatment.',
-    'DIAG_CALICIVIRUS': 'Possible respiratory infection (FCV). Monitor closely and visit your vet for further evaluation.',
-    'DIAG_FLEAALLERGY': 'Possible skin allergy or parasite issue (e.g. fleas, mange). Veterinary advice is recommended for proper treatment.',
-    'DIAG_KIDNEYDISEASE': 'Possible kidney or endocrine disease (e.g. diabetes, hyperthyroidism). Please consult your veterinarian promptly.',
-    'DIAG_URETHRALBLOCK': 'Possible urinary emergency. Seek veterinary care immediately.',
-  };
-
-  Map<String, dynamic> get questions =>
-      petType == PetType.dog ? dogQuestions : catQuestions;
-  Map<String, String> get diagnoses =>
-      petType == PetType.dog ? dogDiagnoses : catDiagnoses;
-
-  String get petName => petType == PetType.dog ? 'Dog' : 'Cat';
-  Color get petColor => petType == PetType.dog ? Colors.orange : Colors.purple;
-
-  void handleAnswer(String answer) {
-    final nextStep = questions[currentStep.value][answer];
-    if (nextStep.toString().startsWith('DIAG') ||
-        nextStep.toString().startsWith('END')) {
-      diagnosis.value = diagnoses[nextStep];
+    if (firstRule != null) {
+      currentStep.value = firstRule.id.toString();
     } else {
-      currentStep.value = nextStep;
+      // Fallback if no rules found
+      currentStep.value = petType == PetType.dog ? 'dog' : 'cat';
     }
   }
 
+  List<RuleBase> get rules => ruleBaseController.rules;
+
+  String get petName => petType == PetType.dog ? 'dog' : 'cat';
+  Color get petColor => petType == PetType.dog ? Colors.orange : Colors.purple;
+
+  RuleBase? getCurrentRule() {
+    // First try to find by ID (for numeric references)
+    final ruleById = rules.firstWhereOrNull(
+      (rule) => rule.id.toString() == currentStep.value,
+    );
+    if (ruleById != null) return ruleById;
+
+    // Then try to find by target (for initial step)
+    return rules.firstWhereOrNull(
+      (rule) => rule.target.toLowerCase() == currentStep.value.toLowerCase(),
+    );
+  }
+
+  Future<void> handleAnswer(String answer) async {
+    try {
+      isLoading.value = true;
+
+      // Simulate processing delay
+      await Future.delayed(Duration(milliseconds: 500));
+
+      final currentRule = getCurrentRule();
+      if (currentRule == null) return;
+
+      final nextStep = answer == 'yes' ? currentRule.yes : currentRule.no;
+
+      // Check if the next step is a final result (not a number and not a target)
+      if (_isFinalResult(nextStep)) {
+        finalResult.value = nextStep;
+      } else {
+        currentStep.value = nextStep;
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to process answer: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  bool _isFinalResult(String step) {
+    // Check if it's a numeric string (references another rule)
+    if (step.isNumericOnly) {
+      return false;
+    }
+
+    // Check if it's a target (dog/cat)
+    if (step.toLowerCase() == 'dog' || step.toLowerCase() == 'cat') {
+      return false;
+    }
+
+    // Everything else is considered a final result
+    return true;
+  }
+
   void reset() {
-    currentStep.value = 'Q0';
-    diagnosis.value = null;
+    print("Reset called - clearing final result and setting initial step");
+    finalResult.value = null;
+    _setInitialStep();
   }
 
   void goBack() {
@@ -330,7 +310,7 @@ class DiagnosticScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          '${controller.petName} Diagnostic Assistant',
+          '${controller.petName.capitalize} Diagnostic Assistant',
           style: GoogleFonts.poppins(
             fontSize: 18.sp,
             fontWeight: FontWeight.w600,
@@ -355,9 +335,13 @@ class DiagnosticScreen extends StatelessWidget {
           child: Padding(
             padding: EdgeInsets.all(24.w),
             child: Obx(() {
-              return controller.diagnosis.value == null
+              if (controller.ruleBaseController.isLoading.value) {
+                return _buildLoadingView();
+              }
+
+              return controller.finalResult.value == null
                   ? _buildQuestionView(controller)
-                  : _buildDiagnosisView(controller);
+                  : _buildResultView(controller);
             }),
           ),
         ),
@@ -365,7 +349,52 @@ class DiagnosticScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildLoadingView() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.teal),
+        ),
+        SizedBox(height: 20.h),
+        Text(
+          'Loading diagnostic data...',
+          style: GoogleFonts.poppins(
+            fontSize: 16.sp,
+            color: Colors.grey.shade600,
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildQuestionView(DiagnosticController controller) {
+    final currentRule = controller.getCurrentRule();
+
+    if (currentRule == null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 60.sp, color: Colors.red),
+            SizedBox(height: 20.h),
+            Text(
+              'Question not found',
+              style: GoogleFonts.poppins(
+                fontSize: 16.sp,
+                color: Colors.grey.shade600,
+              ),
+            ),
+            SizedBox(height: 20.h),
+            ElevatedButton(
+              onPressed: () => controller.reset(),
+              child: Text('Start Over'),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -387,7 +416,7 @@ class DiagnosticScreen extends StatelessWidget {
               Icon(Icons.pets, size: 50.sp, color: controller.petColor),
               SizedBox(height: 20.h),
               Text(
-                controller.questions[controller.currentStep.value]['question'],
+                currentRule.question.capitalize ?? 'No question available',
                 style: GoogleFonts.poppins(
                   fontSize: 18.sp,
                   fontWeight: FontWeight.w500,
@@ -400,30 +429,59 @@ class DiagnosticScreen extends StatelessWidget {
           ),
         ),
         SizedBox(height: 40.h),
-        Row(
-          children: [
-            Expanded(
-              child: _buildAnswerButton(
-                text: 'Yes',
-                color: Colors.green,
-                onPressed: () => controller.handleAnswer('yes'),
+        Obx(() {
+          if (controller.isLoading.value) {
+            return Container(
+              height: 50.h,
+              child: Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    controller.petColor,
+                  ),
+                ),
               ),
-            ),
-            SizedBox(width: 16.w),
-            Expanded(
-              child: _buildAnswerButton(
-                text: 'No',
-                color: Colors.red,
-                onPressed: () => controller.handleAnswer('no'),
+            );
+          }
+
+          return Row(
+            children: [
+              Expanded(
+                child: _buildAnswerButton(
+                  text: 'Yes',
+                  color: Colors.green,
+                  onPressed: () => controller.handleAnswer('yes'),
+                ),
               ),
-            ),
-          ],
-        ),
+              SizedBox(width: 16.w),
+              Expanded(
+                child: _buildAnswerButton(
+                  text: 'No',
+                  color: Colors.red,
+                  onPressed: () => controller.handleAnswer('no'),
+                ),
+              ),
+            ],
+          );
+        }),
       ],
     );
   }
 
-  Widget _buildDiagnosisView(DiagnosticController controller) {
+  Widget _buildResultView(DiagnosticController controller) {
+    final result = controller.finalResult.value ?? '';
+    final isHealthy =
+        result.toLowerCase().contains('walang sakit') ||
+        result.toLowerCase().contains('healthy') ||
+        result.toLowerCase().contains('normal');
+
+    final resultColor = isHealthy ? Colors.green : Colors.red;
+    final resultIcon = isHealthy ? Icons.check_circle : Icons.warning;
+    final resultText = isHealthy ? 'APPEARS HEALTHY' : 'NEEDS ATTENTION';
+    final resultMessage =
+        isHealthy
+            ? 'Your pet appears to be healthy based on the assessment.'
+            : 'Diagnosis: $result\n\nYour pet may need veterinary attention.';
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -442,23 +500,20 @@ class DiagnosticScreen extends StatelessWidget {
           ),
           child: Column(
             children: [
-              Icon(
-                Icons.medical_services,
-                size: 50.sp,
-                color: controller.petColor,
-              ),
+              Icon(resultIcon, size: 50.sp, color: resultColor),
               SizedBox(height: 20.h),
               Text(
-                'Diagnosis',
+                resultText,
                 style: GoogleFonts.poppins(
                   fontSize: 24.sp,
                   fontWeight: FontWeight.bold,
-                  color: controller.petColor,
+                  color: resultColor,
                 ),
+                textAlign: TextAlign.center,
               ),
               SizedBox(height: 16.h),
               Text(
-                controller.diagnosis.value!,
+                resultMessage,
                 style: GoogleFonts.poppins(
                   fontSize: 16.sp,
                   color: Colors.grey.shade700,
@@ -475,14 +530,19 @@ class DiagnosticScreen extends StatelessWidget {
             _buildAnswerButton(
               text: 'Start Over',
               color: controller.petColor,
-              onPressed: controller.reset,
+              onPressed: () {
+                print("Start Over button pressed");
+                controller.reset();
+              },
             ),
-            SizedBox(height: 16.h),
-            _buildAnswerButton(
-              text: 'Find Nearby Clinics',
-              color: Colors.teal,
-              onPressed: () => Get.offAndToNamed('/clinics'),
-            ),
+            if (!isHealthy) ...[
+              SizedBox(height: 16.h),
+              _buildAnswerButton(
+                text: 'Find Nearby Clinics',
+                color: Colors.teal,
+                onPressed: () => Get.offAndToNamed('/clinics'),
+              ),
+            ],
           ],
         ),
       ],
@@ -518,3 +578,53 @@ class DiagnosticScreen extends StatelessWidget {
     );
   }
 }
+
+// Updated RuleBase model to match your data structure
+class RuleBase {
+  final int id;
+  final String target;
+  final String question;
+  final String yes;
+  final String no;
+  final String? createdAt;
+  final String? updatedAt;
+
+  RuleBase({
+    required this.id,
+    required this.target,
+    required this.question,
+    required this.yes,
+    required this.no,
+    this.createdAt,
+    this.updatedAt,
+  });
+
+  factory RuleBase.fromJson(Map<String, dynamic> json) {
+    return RuleBase(
+      id: json['id'] ?? 0,
+      target: json['target'] ?? '',
+      question: json['question'] ?? '',
+      yes: json['yes'] ?? '',
+      no: json['no'] ?? '',
+      createdAt: json['created_at'],
+      updatedAt: json['updated_at'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'target': target,
+      'question': question,
+      'yes': yes,
+      'no': no,
+      'created_at': createdAt,
+      'updated_at': updatedAt,
+    };
+  }
+}
+
+// Extension to help with string operations
+// extension StringExtension on String {
+//   bool get isNumericOnly => RegExp(r'^[0-9]+$').hasMatch(this);
+// }

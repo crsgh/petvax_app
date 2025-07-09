@@ -210,17 +210,23 @@ class AppointmentsSection extends StatelessWidget {
                                                 content: Column(
                                                   children: [
                                                     CustomText(
-                                                      text: "Please provide a reason for cancellation:",
+                                                      text:
+                                                          "Please provide a reason for cancellation:",
                                                       fontSize: 14,
                                                       color: Colors.grey[800],
                                                     ),
                                                     SizedBox(height: 10.h),
                                                     TextField(
-                                                      controller: TextEditingController(),
+                                                      controller:
+                                                          TextEditingController(),
                                                       decoration: InputDecoration(
-                                                        hintText: "Enter reason",
+                                                        hintText:
+                                                            "Enter reason",
                                                         border: OutlineInputBorder(
-                                                          borderRadius: BorderRadius.circular(8.r),
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                8.r,
+                                                              ),
                                                         ),
                                                       ),
                                                       maxLines: 3,
@@ -241,24 +247,35 @@ class AppointmentsSection extends StatelessWidget {
                                                       Get.snackbar(
                                                         "Error",
                                                         "Please provide a reason",
-                                                        snackPosition: SnackPosition.BOTTOM,
-                                                        backgroundColor: Colors.red.withOpacity(0.1),
+                                                        snackPosition:
+                                                            SnackPosition
+                                                                .BOTTOM,
+                                                        backgroundColor: Colors
+                                                            .red
+                                                            .withOpacity(0.1),
                                                         colorText: Colors.red,
                                                       );
                                                       return;
                                                     }
-                                                    
-                                                    var res = await GetConnect().get(
-                                                      '${AppStrings.baseUrl}booking/update/${appointment.id}/cancelled?reason=$reason',
-                                                    );
-                                                    
-                                                    if (res.body['status'] == "success") {
+
+                                                    var res = await GetConnect()
+                                                        .get(
+                                                          '${AppStrings.baseUrl}booking/update/${appointment.id}/cancelled?reason=$reason',
+                                                        );
+                                                    print("body: ${res.body}");
+
+                                                    if (res.body['status'] ==
+                                                        "success") {
                                                       Get.back();
                                                       Get.snackbar(
                                                         "Success",
                                                         "Appointment cancelled successfully",
-                                                        snackPosition: SnackPosition.BOTTOM,
-                                                        backgroundColor: Colors.green.withOpacity(0.1),
+                                                        snackPosition:
+                                                            SnackPosition
+                                                                .BOTTOM,
+                                                        backgroundColor: Colors
+                                                            .green
+                                                            .withOpacity(0.1),
                                                         colorText: Colors.green,
                                                       );
                                                     } else {
@@ -266,8 +283,12 @@ class AppointmentsSection extends StatelessWidget {
                                                       Get.snackbar(
                                                         "Error",
                                                         "Failed to cancel appointment",
-                                                        snackPosition: SnackPosition.BOTTOM,
-                                                        backgroundColor: Colors.red.withOpacity(0.1),
+                                                        snackPosition:
+                                                            SnackPosition
+                                                                .BOTTOM,
+                                                        backgroundColor: Colors
+                                                            .red
+                                                            .withOpacity(0.1),
                                                         colorText: Colors.red,
                                                       );
                                                     }
@@ -290,7 +311,7 @@ class AppointmentsSection extends StatelessWidget {
                                               size: 22.sp,
                                             ),
                                           ),
-                                          ],
+                                        ],
                                       )
                                       : Container(),
                                 ],

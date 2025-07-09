@@ -74,6 +74,7 @@ class Settings extends GetxController with SnackBarMixin {
       showErrorSnackbar("Failed to fetch clinics: ${res.statusText}");
     } else {
       var data = res.body['data'] as List;
+      print(data);
       clinics.value = data.map((e) => Clinic.fromJson(e)).toList();
     }
   }

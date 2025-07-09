@@ -75,6 +75,8 @@ class AddPetController extends GetxController with SnackBarMixin {
   final weightError = RxString('');
   final ownerError = RxString('');
   final clinicError = RxString('');
+  final genderError = RxString('');
+  final birthDateError = RxString('');
 
   // Loading state
   final isLoading = RxBool(false);
@@ -175,10 +177,41 @@ class AddPetController extends GetxController with SnackBarMixin {
   }
 
   void validateBreed() {
-    if (breed!.value.length > 255) {
+    if (breed == null) {
+      breedError.value = 'You must select a breed';
+    } else if (breed!.value.length > 255) {
       breedError.value = 'Breed must be less than 255 characters';
+    }
+  }
+
+  void validateGender() {
+    if (selectedGender.value.isEmpty) {
+      genderError.value = 'Gender is required';
+    } else if (![
+      'male',
+      'female',
+      'other',
+    ].contains(selectedGender.value.toLowerCase())) {
+      genderError.value = 'Invalid gender';
     } else {
-      breedError.value = '';
+      genderError.value = '';
+    }
+  }
+
+  void validateBirthDate() {
+    if (birthDate.value == null) {
+      birthDateError.value = 'Birth date is required';
+    } else {
+      try {
+        final parsedDate = (birthDate.value);
+        if (parsedDate!.isAfter(DateTime.now())) {
+          birthDateError.value = 'Birth date cannot be in the future';
+        } else {
+          birthDateError.value = '';
+        }
+      } catch (e) {
+        birthDateError.value = 'Invalid date format (use YYYY-MM-DD)';
+      }
     }
   }
 
@@ -211,26 +244,62 @@ class AddPetController extends GetxController with SnackBarMixin {
     }
   }
 
-  // Form validation
-  bool validateForm() {
-    validateName();
-    validateSpecies();
-    validateBreed();
-    validateWeight();
-    validateOwner();
-    validateClinic();
+  String? validateForm() {
+    nameError.value = '';
+    speciesError.value = '';
+    breedError.value = '';
+    weightError.value = '';
+    ownerError.value = '';
+    clinicError.value = '';
+    genderError.value = '';
+    birthDateError.value = '';
 
-    return nameError.value.isEmpty &&
-        speciesError.value.isEmpty &&
-        breedError.value.isEmpty &&
-        weightError.value.isEmpty &&
-        ownerError.value.isEmpty &&
-        clinicError.value.isEmpty;
+    if (name.value.trim().isEmpty) {
+      nameError.value = 'Name is required';
+      return nameError.value;
+    }
+
+    if (specie.value.trim().isEmpty) {
+      speciesError.value = 'Species is required';
+      return speciesError.value;
+    }
+
+    if (breed!.value.trim().isEmpty) {
+      breedError.value = 'Breed is required';
+      return breedError.value;
+    }
+
+    if (weight.value.trim().isEmpty) {
+      weightError.value = 'Weight is required';
+      return weightError.value;
+    }
+
+    if (selectedGender.value.trim().isEmpty) {
+      genderError.value = 'Gender is required';
+      return genderError.value;
+    }
+
+    if (birthDate.value == null || birthDate.value.toString().isEmpty) {
+      birthDateError.value = 'Birth date is required';
+      return birthDateError.value;
+    }
+
+    return null; // No errors
   }
 
   // Submit form
   Future<void> submitForm() async {
-    // if (!validateForm()) return;
+    var errorMessage = validateForm();
+    if (errorMessage != null) {
+      Get.snackbar(
+        "Validation Error",
+        errorMessage,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+      return;
+    }
 
     isLoading.value = true;
 

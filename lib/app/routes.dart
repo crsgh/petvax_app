@@ -64,7 +64,7 @@ appRoutes() => [
   GetPage(name: '/view-pet', page: () => ViewPet(), binding: ViewPetBinding()),
   GetPage(
     name: '/rule-base',
-    page: () => RuleBase(),
+    page: () => RuleBaseScreen(),
     binding: RuleBaseBinding(),
   ),
   GetPage(

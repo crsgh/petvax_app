@@ -12,6 +12,7 @@ class CustomInputField extends StatelessWidget {
   final VoidCallback? onTogglePassword;
   final TextInputType keyboardType;
   final double? marginBottom;
+  final FormFieldValidator? validator;
 
   const CustomInputField({
     super.key,
@@ -24,6 +25,7 @@ class CustomInputField extends StatelessWidget {
     this.onTogglePassword,
     this.keyboardType = TextInputType.text,
     this.marginBottom,
+    this.validator,
   });
 
   @override
@@ -36,6 +38,7 @@ class CustomInputField extends StatelessWidget {
         obscureText: isPassword ? !showPassword : false,
         keyboardType: keyboardType,
         style: GoogleFonts.poppins(fontSize: 16.sp, color: Colors.grey[800]),
+        validator: validator,
         decoration: InputDecoration(
           hintText: placeholder,
           hintStyle: GoogleFonts.poppins(

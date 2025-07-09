@@ -13,6 +13,7 @@ import '../../../app/components/pretty_alerts.dart';
 enum AuthView { loading, login, signup, forgotPassword, error }
 
 class AuthController extends GetxController {
+  final formKey = GlobalKey<FormState>();
   var view = AuthView.loading.obs;
   GetConnect connect = GetConnect();
 
@@ -136,6 +137,9 @@ class AuthController extends GetxController {
 
   // Authentication methods
   void signIn() async {
+    if (!formKey.currentState!.validate()) {
+      return;
+    }
     showDialog(
       context: Get.context!,
       builder: (_) => Center(child: CircularProgressIndicator()),
@@ -465,7 +469,7 @@ class AuthController extends GetxController {
       final response = await connect.post(
         'verify', // You might need to update this endpoint
         {
-          'email' : email.value,
+          'email': email.value,
           'otp': otp.value,
           'new_password': newPassword.value,
           //'password_confirmation': confirmNewPassword.value,
@@ -475,7 +479,6 @@ class AuthController extends GetxController {
       print("${confirmNewPassword.value}");
       print("response: ${response.body}");
       if (response.hasError) {
-
         Get.snackbar(
           'Error',
           'Network error. Please try again.',

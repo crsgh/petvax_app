@@ -325,9 +325,9 @@ class Services extends GetView<ServicesController> {
                       height: 2.h,
                       width: 30.w,
                       color:
-                      controller.activeIndex.value == 3
-                          ? AppColors.primary
-                          : Colors.transparent,
+                          controller.activeIndex.value == 3
+                              ? AppColors.primary
+                              : Colors.transparent,
                     ),
                   ],
                 ),
@@ -506,6 +506,7 @@ class Services extends GetView<ServicesController> {
                                         service.id,
                                         service.price,
                                         service.isHomeService,
+                                        service.vets,
                                       );
                                     },
                                     gradientColors: AppColors.primaryGradient,
