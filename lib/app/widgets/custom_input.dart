@@ -55,7 +55,7 @@ class CustomInputField extends StatelessWidget {
                   )
                   : null,
           suffixIcon:
-              isPassword
+              !isPassword
                   ? IconButton(
                     onPressed: onTogglePassword,
                     icon: Icon(

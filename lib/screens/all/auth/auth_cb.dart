@@ -237,6 +237,74 @@ class AuthController extends GetxController {
       return;
     }
 
+    if (!RegExp(r'^09\d{9}$').hasMatch(phone.value)) {
+      showDialog(
+        context: Get.context!,
+        builder:
+            (_) => PopupDialog(
+              isOpen: true,
+              onClose: () => Get.back(),
+              title: "Validation Error",
+              type: PopupDialogType.error,
+              secondaryButton: null,
+              primaryButton: "Got it",
+              child: CustomText(
+                text:
+                    "Invalid phone number. It must start with '09' and be exactly 11 digits long.",
+              ),
+            ),
+      );
+      return;
+    }
+    String pass = password.value;
+    String? error;
+
+    if (pass.length < 8) {
+      error = "Password must be at least 8 characters long.";
+    } else if (!RegExp(r'[A-Z]').hasMatch(pass)) {
+      error = "Password must contain at least one uppercase letter.";
+    } else if (!RegExp(r'[a-z]').hasMatch(pass)) {
+      error = "Password must contain at least one lowercase letter.";
+    } else if (!RegExp(r'[0-9]').hasMatch(pass)) {
+      error = "Password must contain at least one number.";
+    } else if (!RegExp(r'[!@#\$%^&*(),.?":{}|<>]').hasMatch(pass)) {
+      error = "Password must contain at least one special character.";
+    }
+
+    if (error != null) {
+      showDialog(
+        context: Get.context!,
+        builder:
+            (_) => PopupDialog(
+              isOpen: true,
+              onClose: () => Get.back(),
+              title: "Validation Error",
+              type: PopupDialogType.error,
+              secondaryButton: null,
+              primaryButton: "Got it",
+              child: CustomText(text: error!),
+            ),
+      );
+      return;
+    }
+
+    if (error != null) {
+      showDialog(
+        context: Get.context!,
+        builder:
+            (_) => PopupDialog(
+              isOpen: true,
+              onClose: () => Get.back(),
+              title: "Validation Error",
+              type: PopupDialogType.error,
+              secondaryButton: null,
+              primaryButton: "Got it",
+              child: CustomText(text: error!),
+            ),
+      );
+      return;
+    }
+
     // Show loading indicator
     showDialog(
       context: Get.context!,
@@ -249,7 +317,7 @@ class AuthController extends GetxController {
       "email": email.value,
       "password": password.value,
       // "password_confirmation": confirmPassword.value,
-      //"contact_number": phone.value,
+      "contact_number": phone.value,
     });
 
     Get.back(); // Dismiss loading indicator

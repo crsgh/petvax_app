@@ -14,6 +14,7 @@ class Clinic {
   final double longitude;
   final double averageStars;
   final List tags;
+  final String phone;
 
   Clinic({
     required this.id,
@@ -28,6 +29,7 @@ class Clinic {
     required this.operationDays,
     required this.averageStars,
     required this.tags,
+    required this.phone,
   });
 
   factory Clinic.fromJson(Map<String, dynamic> json) {
@@ -37,6 +39,7 @@ class Clinic {
       location: json['address'],
       openingTime: json['opening_time'],
       closingTime: json['closing_time'],
+      phone: json['contact'],
       distance: (json['distance'].toString() ?? "0"),
       operationDays: jsonDecode(json['operation_days'] ?? '[]'),
       image:

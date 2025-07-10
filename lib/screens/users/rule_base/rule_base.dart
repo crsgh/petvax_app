@@ -216,16 +216,27 @@ class DiagnosticController extends GetxController {
       ruleBaseController.loadRuleBaseData();
     }
 
-    // Find the first rule for the selected pet type
+    // Find the first rule for the selected pet type where isFirstQuestion is true
     final firstRule = rules.firstWhereOrNull(
-      (rule) => rule.target.toLowerCase() == petName.toLowerCase(),
+      (rule) =>
+          rule.target.toLowerCase() == petName.toLowerCase() &&
+          rule.isFirstQuestion == true,
     );
 
     if (firstRule != null) {
       currentStep.value = firstRule.id.toString();
     } else {
-      // Fallback if no rules found
-      currentStep.value = petType == PetType.dog ? 'dog' : 'cat';
+      // Fallback: if no first question found, try to find any rule for the pet type
+      final anyRule = rules.firstWhereOrNull(
+        (rule) => rule.target.toLowerCase() == petName.toLowerCase(),
+      );
+
+      if (anyRule != null) {
+        currentStep.value = anyRule.id.toString();
+      } else {
+        // Final fallback if no rules found
+        currentStep.value = petType == PetType.dog ? 'dog' : 'cat';
+      }
     }
   }
 
@@ -586,6 +597,7 @@ class RuleBase {
   final String question;
   final String yes;
   final String no;
+  final bool isFirstQuestion;
   final String? createdAt;
   final String? updatedAt;
 
@@ -595,6 +607,7 @@ class RuleBase {
     required this.question,
     required this.yes,
     required this.no,
+    this.isFirstQuestion = false, // Fixed: provide default value
     this.createdAt,
     this.updatedAt,
   });
@@ -606,6 +619,7 @@ class RuleBase {
       question: json['question'] ?? '',
       yes: json['yes'] ?? '',
       no: json['no'] ?? '',
+      isFirstQuestion: json['is_first_question'] ?? false,
       createdAt: json['created_at'],
       updatedAt: json['updated_at'],
     );
@@ -618,13 +632,9 @@ class RuleBase {
       'question': question,
       'yes': yes,
       'no': no,
+      'is_first_question': isFirstQuestion,
       'created_at': createdAt,
       'updated_at': updatedAt,
     };
   }
 }
-
-// Extension to help with string operations
-// extension StringExtension on String {
-//   bool get isNumericOnly => RegExp(r'^[0-9]+$').hasMatch(this);
-// }

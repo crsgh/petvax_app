@@ -1,6 +1,11 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:petvax/app/models/user_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../components/pretty_alerts.dart';
+import '../widgets/custom_text.dart';
 
 class Storage {
   static saveInt({String key = '', int value = 0}) async {
@@ -52,6 +57,27 @@ class Storage {
   }
 
   static saveUser({required UserModel user}) async {
+    // Phone number validation
+    if (!RegExp(r'^09\d{9}$').hasMatch(user.phone)) {
+      showDialog(
+        context: Get.context!,
+        builder:
+            (_) => PopupDialog(
+              isOpen: true,
+              onClose: () => Get.back(),
+              title: "Validation Error",
+              type: PopupDialogType.error,
+              secondaryButton: null,
+              primaryButton: "Got it",
+              child: CustomText(
+                text:
+                    "Invalid phone number. It must start with '09' and be exactly 11 digits.",
+              ),
+            ),
+      );
+      return;
+    }
+
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     String jsonString = jsonEncode(user.toJson()); // Convert map to string
     await prefs.setString('user', jsonString);

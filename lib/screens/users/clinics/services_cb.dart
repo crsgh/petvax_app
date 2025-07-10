@@ -1002,7 +1002,15 @@ class ServicesController extends GetxController with SnackBarMixin {
                 SizedBox(height: 15.h),
                 CustomText(
                   text:
-                      "Gcash Number: ${services.firstWhere((e) => e.id == id).gCashNumber ?? "Not available"}",
+                      settings.clinics
+                          .firstWhere(
+                            (e) =>
+                                e.id.toString() ==
+                                (services.firstWhere(
+                                  (e) => e.id.toString() == id.toString(),
+                                )).id.toString(),
+                          )
+                          .phone,
                   fontSize: 16.sp,
                   fontWeight: FontWeight.w500,
                 ),
