@@ -317,7 +317,7 @@ class AuthController extends GetxController {
       "email": email.value,
       "password": password.value,
       // "password_confirmation": confirmPassword.value,
-      "contact_number": phone.value,
+      // "contact_number": phone.value,
     });
 
     Get.back(); // Dismiss loading indicator

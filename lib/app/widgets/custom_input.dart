@@ -55,11 +55,11 @@ class CustomInputField extends StatelessWidget {
                   )
                   : null,
           suffixIcon:
-              !isPassword
+              isPassword
                   ? IconButton(
                     onPressed: onTogglePassword,
                     icon: Icon(
-                      showPassword ? Icons.visibility_off : Icons.visibility,
+                      !showPassword ? Icons.visibility_off : Icons.visibility,
                       color: Colors.grey[400],
                       size: 20.sp,
                     ),

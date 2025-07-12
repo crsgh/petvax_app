@@ -162,7 +162,8 @@ class RuleBaseController extends GetxController {
 
       // Load your rule base data here
       await _loadRules();
-    } catch (e) {
+    } catch (e,ex) {
+      print(ex);
       Get.snackbar('Error', 'Failed to load diagnostic data: $e');
     } finally {
       isLoading.value = false;
@@ -172,6 +173,7 @@ class RuleBaseController extends GetxController {
   Future<void> _loadRules() async {
     var res = await GetConnect().get('${AppStrings.baseUrl}rule-base');
     // Fixed: Direct mapping without JSON decoding since data is already parsed
+    print("carlos: ${res.body}");
     List<Map<String, dynamic>> ruleData = List<Map<String, dynamic>>.from(
       res.body['data'],
     );
@@ -619,7 +621,7 @@ class RuleBase {
       question: json['question'] ?? '',
       yes: json['yes'] ?? '',
       no: json['no'] ?? '',
-      isFirstQuestion: json['is_first_question'] ?? false,
+      isFirstQuestion: json['is_first_question'] == 1 ? true : false,
       createdAt: json['created_at'],
       updatedAt: json['updated_at'],
     );
