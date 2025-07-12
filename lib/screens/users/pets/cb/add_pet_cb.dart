@@ -18,6 +18,7 @@ class AddPetController extends GetxController with SnackBarMixin {
   var view = AddPetView.loading.obs;
   Settings settings = Get.find<Settings>();
   GetConnect connect = GetConnect();
+  final GlobalKey<FormState> formKey = GlobalKey();
   Pet? pet;
   // Form data
   final name = "".obs;

@@ -244,257 +244,262 @@ class AddPetScreen extends StatelessWidget {
   }
 
   Widget _buildFormFields(AddPetController controller, BuildContext context) {
-    return Column(
-      children: [
-        // Name and Species Row
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            CustomText(
-              text: 'Pet Name *',
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade700,
-            ),
-            SizedBox(height: 8.h),
-            Obx(
-              () => CustomInputField(
-                icon: Icons.pets,
-                placeholder: 'Enter pet\'s name',
-                value: controller.name.value,
-                onChanged: (val) {
-                  controller.name.value = val;
-                },
-                marginBottom: 10.h,
+    return Form(
+      key: controller.formKey,
+      child: Column(
+        children: [
+          // Name and Species Row
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CustomText(
+                text: 'Pet Name *',
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade700,
               ),
-            ),
-          ],
-        ),
-        SizedBox(width: 16.w),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            CustomText(
-              text: 'Species *',
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade700,
-            ),
-            SizedBox(height: 8.h),
-            Obx(
-              () => DropdownButtonFormField<String>(
-                value:
-                    controller.specie.value == ''
-                        ? null
-                        : controller.specie.value,
-                decoration: InputDecoration(
-                  hintText: 'e.g Canine, Feline',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.r),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 16.w,
-                    vertical: 12.h,
-                  ),
+              SizedBox(height: 8.h),
+              Obx(
+                () => CustomInputField(
+                  validator: (e) => e == "" ? "Name cannot be blank!" : null,
+                  icon: Icons.pets,
+                  placeholder: 'Enter pet\'s name',
+                  value: controller.name.value,
+                  onChanged: (val) {
+                    controller.name.value = val;
+                  },
+                  marginBottom: 10.h,
                 ),
-                items:
-                    controller.settings.species.map((item) {
-                      return DropdownMenuItem<String>(
-                        value: item.name,
-                        child: CustomText(text: item.name, fontSize: 14),
-                      );
-                    }).toList(),
-                onChanged: (val) {
-                  var specie =
-                      controller.settings.species
-                          .firstWhere(
-                            (e) => e.name == val,
-                            orElse: () => controller.settings.species.first,
-                          )
-                          .id;
-
-                  var breeds =
-                      controller.settings.breeds
-                          .where(
-                            (item) =>
-                                item.specieId.toString() == specie.toString(),
-                          )
-                          .toList();
-
-                  controller.breed = breeds.first.id.toString().obs;
-
-                  if (val != null) controller.specie.value = val;
-                },
               ),
-            ),
-          ],
-        ),
-
-        // Breed Dropdown - FIXED
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            CustomText(
-              text: 'Breed',
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade700,
-            ),
-            SizedBox(height: 8.h),
-            Obx(() {
-              return DropdownButtonFormField<String>(
-                // FIXED: Use breed value instead of specie value
-                value: controller.breed?.value,
-                decoration: InputDecoration(
-                  hintText: 'e.g Golden Retriever, Persian',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.r),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 16.w,
-                    vertical: 12.h,
-                  ),
-                ),
-                // FIXED: Use breeds data instead of species data
-                items: controller.getBreeds(controller.specie.value),
-                onChanged: (val) {
-                  // FIXED: Update breed value instead of specie value
-
-                  if (val != null) controller.breed = val.obs;
-                },
-              );
-            }),
-          ],
-        ),
-
-        // Gender Dropdown - This one is working correctly
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            CustomText(
-              text: 'Gender',
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade700,
-            ),
-            SizedBox(height: 8.h),
-            Obx(
-              () => DropdownButtonFormField<String>(
-                value:
-                    controller.selectedGender.value.isEmpty
-                        ? null
-                        : controller.selectedGender.value,
-                decoration: InputDecoration(
-                  hintText: 'Select gender',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.r),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 16.w,
-                    vertical: 12.h,
-                  ),
-                ),
-                items:
-                    controller.genderOptions.map((option) {
-                      return DropdownMenuItem<String>(
-                        value: option['value'] as String,
-                        child: CustomText(
-                          text: option['label'] as String,
-                          fontSize: 14,
-                        ),
-                      );
-                    }).toList(),
-                onChanged: (value) {
-                  controller.selectedGender.value = value ?? '';
-                },
+            ],
+          ),
+          SizedBox(width: 16.w),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CustomText(
+                text: 'Species *',
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade700,
               ),
-            ),
-          ],
-        ),
+              SizedBox(height: 8.h),
+              Obx(
+                () => DropdownButtonFormField<String>(
+                  value:
+                      controller.specie.value == ''
+                          ? null
+                          : controller.specie.value,
+                  decoration: InputDecoration(
+                    hintText: 'e.g Canine, Feline',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.r),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
+                    ),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 16.w,
+                      vertical: 12.h,
+                    ),
+                  ),
+                  items:
+                      controller.settings.species.map((item) {
+                        return DropdownMenuItem<String>(
+                          value: item.name,
+                          child: CustomText(text: item.name, fontSize: 14),
+                        );
+                      }).toList(),
+                  onChanged: (val) {
+                    var specie =
+                        controller.settings.species
+                            .firstWhere(
+                              (e) => e.name == val,
+                              orElse: () => controller.settings.species.first,
+                            )
+                            .id;
 
-        SizedBox(height: 16.h),
+                    var breeds =
+                        controller.settings.breeds
+                            .where(
+                              (item) =>
+                                  item.specieId.toString() == specie.toString(),
+                            )
+                            .toList();
 
-        // Birth Date and Weight Row
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.calendar_today, size: 16.sp),
-                SizedBox(width: 4.w),
-                CustomText(
-                  text: 'Birth Date',
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey.shade700,
+                    controller.breed = breeds.first.id.toString().obs;
+
+                    if (val != null) controller.specie.value = val;
+                  },
                 ),
-              ],
-            ),
-            SizedBox(height: 8.h),
-            Obx(
-              () => GestureDetector(
-                onTap: () => controller.selectBirthDate(context),
-                child: Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 16.w,
-                    vertical: 12.h,
+              ),
+            ],
+          ),
+
+          // Breed Dropdown - FIXED
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CustomText(
+                text: 'Breed',
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade700,
+              ),
+              SizedBox(height: 8.h),
+              Obx(() {
+                return DropdownButtonFormField<String>(
+                  // FIXED: Use breed value instead of specie value
+                  value: controller.breed?.value,
+                  decoration: InputDecoration(
+                    hintText: 'e.g Golden Retriever, Persian',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.r),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
+                    ),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 16.w,
+                      vertical: 12.h,
+                    ),
                   ),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey.shade300),
-                    borderRadius: BorderRadius.circular(8.r),
+                  // FIXED: Use breeds data instead of species data
+                  items: controller.getBreeds(controller.specie.value),
+                  onChanged: (val) {
+                    // FIXED: Update breed value instead of specie value
+
+                    if (val != null) controller.breed = val.obs;
+                  },
+                );
+              }),
+            ],
+          ),
+
+          // Gender Dropdown - This one is working correctly
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CustomText(
+                text: 'Gender',
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade700,
+              ),
+              SizedBox(height: 8.h),
+              Obx(
+                () => DropdownButtonFormField<String>(
+                  value:
+                      controller.selectedGender.value.isEmpty
+                          ? null
+                          : controller.selectedGender.value,
+                  decoration: InputDecoration(
+                    hintText: 'Select gender',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.r),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
+                    ),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 16.w,
+                      vertical: 12.h,
+                    ),
                   ),
-                  child: CustomText(
-                    text:
-                        controller.birthDate.value != null
-                            ? '${controller.birthDate.value!.day}/${controller.birthDate.value!.month}/${controller.birthDate.value!.year}'
-                            : 'Select birth date',
+                  items:
+                      controller.genderOptions.map((option) {
+                        return DropdownMenuItem<String>(
+                          value: option['value'] as String,
+                          child: CustomText(
+                            text: option['label'] as String,
+                            fontSize: 14,
+                          ),
+                        );
+                      }).toList(),
+                  onChanged: (value) {
+                    controller.selectedGender.value = value ?? '';
+                  },
+                ),
+              ),
+            ],
+          ),
+
+          SizedBox(height: 16.h),
+
+          // Birth Date and Weight Row
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.calendar_today, size: 16.sp),
+                  SizedBox(width: 4.w),
+                  CustomText(
+                    text: 'Birth Date',
                     fontSize: 14,
-                    color:
-                        controller.birthDate.value != null
-                            ? Colors.black87
-                            : Colors.grey.shade500,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey.shade700,
+                  ),
+                ],
+              ),
+              SizedBox(height: 8.h),
+              Obx(
+                () => GestureDetector(
+                  onTap: () => controller.selectBirthDate(context),
+                  child: Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 16.w,
+                      vertical: 12.h,
+                    ),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
+                    child: CustomText(
+                      text:
+                          controller.birthDate.value != null
+                              ? '${controller.birthDate.value!.day}/${controller.birthDate.value!.month}/${controller.birthDate.value!.year}'
+                              : 'Select birth date',
+                      fontSize: 14,
+                      color:
+                          controller.birthDate.value != null
+                              ? Colors.black87
+                              : Colors.grey.shade500,
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
-        ),
-        SizedBox(height: 16.h),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.scale, size: 16.sp),
-                SizedBox(width: 4.w),
-                CustomText(
-                  text: 'Weight (kg)',
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey.shade700,
-                ),
-              ],
-            ),
-            SizedBox(height: 8.h),
-            Obx(
-              () => CustomInputField(
-                placeholder: 'Enter weight',
-                value: controller.weight.value,
-                onChanged: (val) {
-                  controller.weight.value = val;
-                },
-                marginBottom: 10.h,
+            ],
+          ),
+          SizedBox(height: 16.h),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.scale, size: 16.sp),
+                  SizedBox(width: 4.w),
+                  CustomText(
+                    text: 'Weight (kg)',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey.shade700,
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
+              SizedBox(height: 8.h),
+              Obx(
+                () => CustomInputField(
+                  validator: (e) => (int.tryParse(e)  ?? 0) <= 0 ? "Weight must be greater than 0kg!" : null,
+                  placeholder: 'Enter weight',
+                  value: controller.weight.value,
+                  onChanged: (val) {
+                    controller.weight.value = val;
+                  },
+                  marginBottom: 10.h,
+                ),
+              ),
+            ],
+          ),
 
-        SizedBox(height: 24.h),
-      ],
+          SizedBox(height: 24.h),
+        ],
+      ),
     );
   }
 
@@ -504,7 +509,10 @@ class AddPetScreen extends StatelessWidget {
       child: GradientButton(
         text: controller.pet != null ? "Update Pet" : "Add Pet",
         onPressed: () {
-          controller.submitForm();
+          if(controller.formKey.currentState!.validate()){
+            controller.submitForm();
+          }
+
         },
         gradientColors: AppColors.primaryGradient,
       ),
