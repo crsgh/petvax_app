@@ -58,7 +58,7 @@ class RuleBaseScreen extends StatelessWidget {
                     onTap:
                         () => Get.to(
                           () => DiagnosticScreen(petType: PetType.dog),
-                        ),
+                    ),
                   ),
                   _buildPetCard(
                     title: 'Cat',
@@ -67,7 +67,7 @@ class RuleBaseScreen extends StatelessWidget {
                     onTap:
                         () => Get.to(
                           () => DiagnosticScreen(petType: PetType.cat),
-                        ),
+                    ),
                   ),
                 ],
               ),
@@ -201,27 +201,48 @@ class DiagnosticController extends GetxController {
   var currentStep = ''.obs;
   var finalResult = Rx<String?>(null);
   var isLoading = false.obs;
+  var isInitialized = false.obs;
 
   @override
   void onInit() {
     super.onInit();
     // Get or create the RuleBaseController
     ruleBaseController = Get.find<RuleBaseController>();
-    // Start with the first rule for the selected pet type
-    _setInitialStep();
+    // Initialize the diagnostic
+    _initializeDiagnostic();
+  }
+
+  Future<void> _initializeDiagnostic() async {
+    try {
+      isLoading.value = true;
+
+      // Wait for rules to load if they haven't already
+      while (ruleBaseController.isLoading.value) {
+        await Future.delayed(Duration(milliseconds: 100));
+      }
+
+      // If rules are empty, try to load them
+      if (ruleBaseController.rules.isEmpty) {
+        await ruleBaseController.loadRuleBaseData();
+      }
+
+      // Set initial step after rules are loaded
+      _setInitialStep();
+
+      isInitialized.value = true;
+    } catch (e) {
+      print("Error initializing diagnostic: $e");
+      Get.snackbar('Error', 'Failed to initialize diagnostic: $e');
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   void _setInitialStep() {
-    // Wait for rules to load if they haven't already
-    if (ruleBaseController.rules.isEmpty &&
-        !ruleBaseController.isLoading.value) {
-      ruleBaseController.loadRuleBaseData();
-    }
-
     // Find the first rule for the selected pet type where isFirstQuestion is true
     final firstRule = rules.firstWhereOrNull(
-      (rule) =>
-          rule.target.toLowerCase() == petName.toLowerCase() &&
+          (rule) =>
+      rule.target.toLowerCase() == petName.toLowerCase() &&
           rule.isFirstQuestion == true,
     );
 
@@ -230,7 +251,7 @@ class DiagnosticController extends GetxController {
     } else {
       // Fallback: if no first question found, try to find any rule for the pet type
       final anyRule = rules.firstWhereOrNull(
-        (rule) => rule.target.toLowerCase() == petName.toLowerCase(),
+            (rule) => rule.target.toLowerCase() == petName.toLowerCase(),
       );
 
       if (anyRule != null) {
@@ -250,13 +271,13 @@ class DiagnosticController extends GetxController {
   RuleBase? getCurrentRule() {
     // First try to find by ID (for numeric references)
     final ruleById = rules.firstWhereOrNull(
-      (rule) => rule.id.toString() == currentStep.value,
+          (rule) => rule.id.toString() == currentStep.value,
     );
     if (ruleById != null) return ruleById;
 
     // Then try to find by target (for initial step)
     return rules.firstWhereOrNull(
-      (rule) => rule.target.toLowerCase() == currentStep.value.toLowerCase(),
+          (rule) => rule.target.toLowerCase() == currentStep.value.toLowerCase(),
     );
   }
 
@@ -348,7 +369,8 @@ class DiagnosticScreen extends StatelessWidget {
           child: Padding(
             padding: EdgeInsets.all(24.w),
             child: Obx(() {
-              if (controller.ruleBaseController.isLoading.value) {
+              // Show loading while initializing
+              if (!controller.isInitialized.value || controller.isLoading.value) {
                 return _buildLoadingView();
               }
 
@@ -484,16 +506,16 @@ class DiagnosticScreen extends StatelessWidget {
     final result = controller.finalResult.value ?? '';
     final isHealthy =
         result.toLowerCase().contains('walang sakit') ||
-        result.toLowerCase().contains('healthy') ||
-        result.toLowerCase().contains('normal');
+            result.toLowerCase().contains('healthy') ||
+            result.toLowerCase().contains('normal');
 
     final resultColor = isHealthy ? Colors.green : Colors.red;
     final resultIcon = isHealthy ? Icons.check_circle : Icons.warning;
     final resultText = isHealthy ? 'APPEARS HEALTHY' : 'NEEDS ATTENTION';
     final resultMessage =
-        isHealthy
-            ? 'Your pet appears to be healthy based on the assessment.'
-            : 'Diagnosis: $result\n\nYour pet may need veterinary attention.';
+    isHealthy
+        ? 'Your pet appears to be healthy based on the assessment.'
+        : 'Diagnosis: $result\n\nYour pet may need veterinary attention.';
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,

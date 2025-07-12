@@ -440,7 +440,16 @@ class ViewPet extends GetView<ViewPetController> {
               ),
             ),
             SizedBox(height: 12.h),
-            _buildInfoRow('Breed:', controller.pet.value.breed ?? "Unknown"),
+            _buildInfoRow('Breed:', controller.settings.breeds
+                .firstWhere(
+                  (breed) =>
+              breed.id.toString() ==
+                  controller.pet.value.breed.toString(),
+              orElse:
+                  () => controller.settings.breeds.first,
+            )
+                .name ??
+                "Unknown"),
             _buildInfoRow(
               'Age:',
               controller.pet.value.birthDate != null

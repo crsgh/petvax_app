@@ -628,14 +628,14 @@ class PetOwnerProfileScreen extends GetView<PetOwnerController> {
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
-                              GestureDetector(
-                                onTap: () => controller.editPet(pet),
-                                child: Icon(
-                                  Icons.edit,
-                                  color: Colors.grey.shade400,
-                                  size: 16.w,
-                                ),
-                              ),
+                              // GestureDetector(
+                              //   onTap: () => controller.editPet(pet),
+                              //   child: Icon(
+                              //     Icons.edit,
+                              //     color: Colors.grey.shade400,
+                              //     size: 16.w,
+                              //   ),
+                              // ),
                             ],
                           ),
                           SizedBox(height: 4.h),
