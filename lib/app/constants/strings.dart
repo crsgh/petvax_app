@@ -1,4 +1,4 @@
 class AppStrings {
-  static String baseUrl = "https://petvax.shop/api/";
-  static String imageUrl = "https://petvax.shop/storage/";
+  static String baseUrl = "https://petvax-techies.vercel.app/api/";
+  static String imageUrl = "https://petvax-techies.vercel.app/storage/";
 }
